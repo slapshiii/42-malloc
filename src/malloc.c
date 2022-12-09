@@ -1,11 +1,10 @@
-
 #include "../ft_malloc.h"
 
-void    free(void *ptr) {
+void    ft_free(void *ptr) {
     (void)ptr;
 }
 
-void    *malloc(size_t size) {
+void    *ft_malloc(size_t size) {
     static buckets_t b = {
         .lst_page_s = NULL,
         .lst_page_m = NULL,
@@ -13,10 +12,10 @@ void    *malloc(size_t size) {
     };
     void    *res = NULL;
 
-    if (size < getpagesize()/4) {
+    if (size < (size_t)getpagesize()/4) {
         res = allocate(&b.lst_page_s, size);
     }
-    else if (size < getpagesize()) {
+    else if (size < (size_t)getpagesize()) {
         res = allocate(&b.lst_page_m, size);
     }
     else {
@@ -25,8 +24,8 @@ void    *malloc(size_t size) {
     return (res);
 }
 
-void    *realloc(void *ptr, size_t size) {
+void    *ft_realloc(void *ptr, size_t size) {
     (void)ptr;
     (void)size;
-    return (0);
+    return (NULL);
 }

@@ -45,5 +45,6 @@ void    *allocate_large(void** l, size_t s);
 
 void    *format_chunk_a(void *addr, size_t s);
 void    *get_first_fit(void* l, size_t s, void **prev_free);
+void    hexdump(const void* data, size_t size);
 
 #endif

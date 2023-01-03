@@ -18,12 +18,6 @@ void    *create_new_page(void *prev_free) {
 	*(size_t*)(new_page + 2 * SIZE) = 0x0;
 	*(size_t*)(new_page + 3 * SIZE) = 0x42424242;
 	*(size_t*)(new_page + usable_size) = usable_size;
-	printf("%p -- create new page\n", new_page);
-	printf("%lX -- %p\n", *(size_t*)new_page, new_page);
-	printf("%lX -- %p\n", *(size_t*)(new_page + SIZE), new_page + SIZE);
-	printf("%lX -- %p\n", *(size_t*)(new_page + 2 * SIZE), new_page + 2 * SIZE);
-	printf("%lX -- %p\n", *(size_t*)(new_page + 3 * SIZE), new_page + 3 * SIZE);
-	printf("%lX -- %p\n", *(size_t*)(new_page + usable_size), new_page + usable_size);
 	return new_page;
 }
 
@@ -48,8 +42,7 @@ void    *allocate(void **l, size_t s) {
 		cur = create_new_page(prev_free);
 		*l = cur;
 	}
-	//printf("%p -- before format\n", cur);
-	//res = format_chunk_a(cur, s);
+	res = format_chunk_a(cur, s);
 	return (res);
 }
 
@@ -80,6 +73,8 @@ void	*format_chunk_a(void *addr, size_t s) {
 	*(size_t*)(res + size_allocated + SIZE) = remaining;
 	*(size_t*)(res + size_allocated + 2 * SIZE) = (size_t)next_free;
 	*(size_t*)(addr + size_free) = remaining;
+	hexdump(addr, 4096);
+
 	return (res);
 }
 

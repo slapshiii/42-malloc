@@ -9,7 +9,8 @@ OBJDIR := obj
 LIBFTDIR := libft
 
 C_FILE =	malloc.c \
-			malloc_page.c
+			malloc_page.c \
+			print_mem.c
 
 SRCS =	$(addprefix $(SRCDIR)/, $(C_FILE))
 OBJS = 	$(addprefix $(OBJDIR)/, $(notdir $(SRCS:%.c=%.o)))
@@ -23,19 +24,18 @@ CC=gcc
 all:	${NAME}
 
 ${NAME}: libft.a ${OBJS}
-	${CC} ${CFLAGS} -shared -o ${NAME} ${OBJS} -L. -lft
+	${CC} ${CFLAGS} -shared -o ${NAME} ${OBJS} -L$(LIBFTDIR) -lft
 	-ln -sf ${NAME} libft_malloc.so
 
 $(OBJDIR)/%.o:	$(SRCDIR)/%.c ft_malloc.h
 	@mkdir -p $(OBJDIR)
-	${CC} ${CFLAGS} -c $< -o $@ -L. -lft -I./$(LIBFTDIR)
+	${CC} ${CFLAGS} -c $< -o $@ -L$(LIBFTDIR) -lft -I./$(LIBFTDIR)
 
 libft.a:
 	$(MAKE) -C $(LIBFTDIR)/
-	ln -sf $(LIBFTDIR)/libft.a libft.a
 
 test: ${NAME}
-	${CC} -o a.out main.c -I./$(LIBFTDIR) -L. -lft -L. -lft_malloc
+	${CC} -I. -o a.out main.c -L. -lft_malloc
 	@-./a.out
 
 clean:
@@ -45,10 +45,8 @@ clean:
 fclean:		clean
 	-rm -rf ${NAME} a.out
 	-unlink libft_malloc.so
-	-unlink libft.a
 	$(MAKE) -C $(LIBFTDIR)/ fclean
 
 re:		fclean all
-
 
 .PHONY:		all clean fclean re test

@@ -62,8 +62,23 @@ void    *allocate_large(void** l, size_t s) {
 }
 
 void	desallocate(void *ptr, void **fl, size_t size) {
+	void *res;
+	void **listpage;
 	format_chunk_f(ptr, fl, size);
-	free_merge_contiguous(ptr);
+	res = free_merge_contiguous(ptr);
+	if (GETSIZE(res) == (size_t)getpagesize() - 3 * SIZE) {
+		listpage = (size < (size_t)getpagesize()/4) ? &b.lst_free_s : &b.lst_free_m;
+		if ((size_t)*listpage == (size_t)res) {
+			*listpage = (void *)*(size_t*)(res) + getpagesize();
+		} else {
+			void *cur = *listpage;
+			while((void *)*(size_t*)(cur) + getpagesize() != res) {
+				cur = (void *)*(size_t*)(cur) + getpagesize();
+			}
+			*(size_t*)(cur + getpagesize()) = *(size_t*)(res + getpagesize());
+		}
+		int test = munmap(res, getpagesize());
+	}
 }
 
 void	desallocate_large(void *ptr, size_t size) {

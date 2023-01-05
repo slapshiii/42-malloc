@@ -1,6 +1,6 @@
 #include "../ft_malloc.h"
 
-static buckets_t b = {
+buckets_t b = {
         .lst_page_s = NULL,
         .lst_page_m = NULL,
         .lst_page_l = NULL,

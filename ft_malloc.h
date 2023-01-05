@@ -53,6 +53,7 @@ void	desallocate_large(void *ptr, size_t size);
 void    *format_chunk_a(void *addr, void **fl, size_t s);
 void	*format_chunk_f(void *addr, void **fl, size_t s);
 void    *get_first_fit(void* l, size_t s);
+void	free_merge_contiguous(void *ptr);
 
 void    *get_last_page_nxt_ptr(void* l);
 void    hexdump(const void* data, size_t size);

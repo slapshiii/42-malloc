@@ -38,7 +38,7 @@ libft.a:
 
 test: ${NAME}
 	${CC} -I. -o a.out main.c -L. -lft_malloc
-	@-./a.out
+	@-./a.out > test.txt
 
 clean:
 	-rm -rf ${OBJDIR}

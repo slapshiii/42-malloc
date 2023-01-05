@@ -28,11 +28,11 @@ void    *create_new_page() {
 	);
 	if (new_page == MAP_FAILED)
 		return (NULL);
-	size_t usable_size = pagesize - 2 * SIZE;
+	size_t usable_size = pagesize - 3 * SIZE;
 	*(size_t*)(new_page) = (size_t)usable_size;					// mark page start
-	*(size_t*)(new_page + usable_size) = (size_t)usable_size;	// next pointer
-	*(size_t*)(new_page + usable_size + SIZE) = (size_t)0;
-	hexdump(new_page, 60);
+	*(size_t*)(new_page + usable_size + SIZE) = (size_t)usable_size;	// mark page end
+	*(size_t*)(new_page + usable_size + 2 * SIZE) = (size_t)0;			// next pointer
+	hexdump(new_page, pagesize);
 	return new_page;
 }
 
@@ -61,28 +61,7 @@ void    *allocate_large(void** l, size_t s) {
 	return (NULL);
 }
 
-void	free_merge_contiguous(void *ptr) {
-	void* next_chunk_ptr = (ptr + GETSIZE(ptr) + 2 * SIZE);
-	void* prev_chunk_ptr = (ptr - GETSIZE(ptr - SIZE) - 2 * SIZE);
-	if (!ISALLOC(next_chunk_ptr))
-	{
-		*(size_t*)(ptr) = GETSIZE(ptr) + GETSIZE(next_chunk_ptr) + 2 * SIZE;
-		*(size_t*)(ptr + GETSIZE(ptr) + SIZE) = GETSIZE(ptr);
-		*(size_t*)(ptr + 2 * SIZE) = *(size_t*)(next_chunk_ptr + 2 * SIZE);
-		for (size_t i = 0; i < GETSIZE(next_chunk_ptr); ++i)
-			*(char*)(next_chunk_ptr - SIZE + i) = 0;
-	}
-	if (!ISALLOC(prev_chunk_ptr) && *(size_t*)(prev_chunk_ptr) != 0)
-	{
-		*(size_t*)(prev_chunk_ptr) = GETSIZE(ptr) + GETSIZE(prev_chunk_ptr) + 2 * SIZE;
-		*(size_t*)(prev_chunk_ptr + GETSIZE(prev_chunk_ptr) + SIZE) = GETSIZE(prev_chunk_ptr);
-		for (size_t i = 0; i < GETSIZE(ptr); ++i)
-			*(char*)(ptr - SIZE + i) = 0;
-	}
-}
-
 void	desallocate(void *ptr, void **fl, size_t size) {
-	(void)size;
 	format_chunk_f(ptr, fl, size);
 	free_merge_contiguous(ptr);
 }

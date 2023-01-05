@@ -33,20 +33,21 @@ void	*format_chunk_a(void *addr, void **fl, size_t s) {
 		size_allocated = (s + SIZE) & ~(SIZE - 1);
 	else
 		size_allocated = s;
-	size_t remaining = size_free - size_allocated - 2 * SIZE;
-	if (remaining < 2 * SIZE) {
-		printf("IS ENOUGHT?\n%ld size free\n%ld size alloc\n%ld remain\n", size_free, size_allocated, remaining);
+	int remaining = size_free - size_allocated - 2 * SIZE;
+	// printf("IS ENOUGHT?\n%ld size free\n%ld size alloc\n%d remain\n", 
+	// 		size_free, size_allocated, remaining);
+	if (remaining < (int)(2 * SIZE)) {
 		size_allocated = size_free;
 	}
 	*(size_t*)(addr) = size_allocated + 1;
 	*(size_t*)(res + size_allocated) = size_allocated + 1;
 	if ((size_t*)prev_free != NULL){
-		*(size_t*)(prev_free + SIZE * 2) = (remaining < 4 * SIZE) ? next_free : (size_t)res + size_allocated + SIZE;
+		*(size_t*)(prev_free + SIZE * 2) = (remaining < (int)(4 * SIZE)) ? next_free : (size_t)res + size_allocated + SIZE;
 	}
 	if ((size_t*)next_free != NULL) {
-		*(size_t*)(next_free + SIZE) = (remaining < 4 * SIZE) ? prev_free : (size_t)res + size_allocated + SIZE;
+		*(size_t*)(next_free + SIZE) = (remaining < (int)(4 * SIZE)) ? prev_free : (size_t)res + size_allocated + SIZE;
 	}
-	if (remaining >= 4 * SIZE) {
+	if (remaining >= (int)(2 * SIZE)) {
 		*(size_t*)(res + size_allocated + SIZE) = remaining;
 		*(size_t*)(addr + size_free + SIZE) = remaining;
 		*fl = res + size_allocated + SIZE;
@@ -71,6 +72,8 @@ void	*format_chunk_f(void *addr, void **fl, size_t s) {
 		}
 		*(size_t*)(addr + SIZE * 2) = (size_t)next_f;
 		*(size_t*)(addr + SIZE) = (size_t)prev_f;
+		if (prev_f != NULL)
+			*(size_t*)(prev_f + SIZE * 2) = (size_t)addr;
 	}
 	*(size_t*)(addr) = s;
 	*(size_t*)(addr + s + SIZE) = s;

@@ -1,5 +1,7 @@
 main.c
 .vscode/
+*.txt
+
 # Prerequisites
 *.d
 

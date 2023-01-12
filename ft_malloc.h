@@ -59,9 +59,14 @@ void	desallocate_large(void *ptr, size_t size);
 void    *format_chunk_a(void *addr, void **fl, size_t s);
 void	*format_chunk_f(void *addr, void **fl, size_t s);
 void    *get_first_fit(void* l, size_t s);
+void    *get_last_free(void** l);
 void	*free_merge_contiguous(void *ptr);
+size_t	print_bucket(void *root);
 
-void    *get_last_page_nxt_ptr(void* l);
+void	set_value(void *addr, size_t val);
+size_t	get_value(void *addr);
+
+void    *get_last_page_nxt_ptr(void** l);
 void    hexdump(const void* data, size_t size);
 
 #endif

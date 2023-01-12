@@ -28,11 +28,14 @@ void    *create_new_page() {
 	);
 	if (new_page == MAP_FAILED)
 		return (NULL);
-	size_t usable_size = pagesize - 3 * SIZE;
-	*(size_t*)(new_page) = (size_t)usable_size;					// mark page start
-	*(size_t*)(new_page + usable_size + SIZE) = (size_t)usable_size;	// mark page end
-	*(size_t*)(new_page + usable_size + 2 * SIZE) = (size_t)0;			// next pointer
-	hexdump(new_page, pagesize);
+	size_t usable_size = pagesize - 4 * SIZE;
+	set_value(new_page							, usable_size);	// chunk header
+	set_value(new_page + usable_size + SIZE		, usable_size);	// chunk footer
+	set_value(new_page + usable_size + SIZE * 2	, 0b01);		// mark page end
+	set_value(new_page + usable_size + SIZE * 3	, 0);			// nxt page ptr
+
+	// hexdump(new_page, pagesize);
+	printf("%p -- new page\n", new_page);
 	return new_page;
 }
 
@@ -40,15 +43,19 @@ void    *allocate(void **l, void **fl, size_t s) {
 	void    *cur = *l;
 	void    *res = NULL;
 	void    *prev_page = NULL;
+	void	*last_free = NULL;
 	cur = get_first_fit(*fl, s);
 	if (cur == NULL) {
-		prev_page = get_last_page_nxt_ptr(*l);
 		cur = create_new_page();
 		if (*l == NULL) {
 			*l = cur;
 			*fl = cur;
 		} else {
-			*(size_t*)prev_page = (size_t)cur;
+			prev_page = get_last_page_nxt_ptr(l);
+			last_free = get_last_free(fl);
+			set_value(prev_page, (size_t)cur);
+			set_value(cur + BKPTR, (size_t)last_free);
+			set_value(last_free + FDPTR, (size_t)cur);
 		}
 	}
 	res = format_chunk_a(cur, fl, s);
@@ -64,20 +71,26 @@ void    *allocate_large(void** l, size_t s) {
 void	desallocate(void *ptr, void **fl, size_t size) {
 	void *res;
 	void **listpage;
+	size_t pagesize = (size_t)getpagesize();
 	format_chunk_f(ptr, fl, size);
 	res = free_merge_contiguous(ptr);
-	if (GETSIZE(res) == (size_t)getpagesize() - 3 * SIZE) {
-		listpage = (size < (size_t)getpagesize()/4) ? &b.lst_free_s : &b.lst_free_m;
-		if ((size_t)*listpage == (size_t)res) {
-			*listpage = (void *)*(size_t*)(res) + getpagesize();
+	if (GETSIZE(res) == pagesize - 4 * SIZE) {
+		listpage = (size < pagesize/4) ? &b.lst_page_s : &b.lst_page_m;
+		if (*listpage == res) {
+			*listpage = (void *)get_value(res + pagesize - SIZE);
 		} else {
 			void *cur = *listpage;
-			while((void *)*(size_t*)(cur) + getpagesize() != res) {
-				cur = (void *)*(size_t*)(cur) + getpagesize();
-			}
-			*(size_t*)(cur + getpagesize()) = *(size_t*)(res + getpagesize());
+			while((void *)get_value(cur + pagesize - SIZE) != res)
+				cur = (void *)get_value(cur + pagesize - SIZE);
+			set_value(cur + pagesize - SIZE, get_value(res + pagesize - SIZE));
 		}
-		int test = munmap(res, getpagesize());
+		if (*fl == res)
+			*fl = (void *)get_value(res + FDPTR);
+		if (get_value(res + FDPTR) != 0)
+			set_value((void *)get_value(res + FDPTR) + BKPTR, get_value(res + BKPTR));
+		if (get_value(res + BKPTR) != 0)
+			set_value((void *)get_value(res + BKPTR) + FDPTR, get_value(res + FDPTR));
+		munmap(res, pagesize);
 	}
 }
 
@@ -86,11 +99,12 @@ void	desallocate_large(void *ptr, size_t size) {
 	(void)size;
 }
 
-void    *get_last_page_nxt_ptr(void* l)
+void    *get_last_page_nxt_ptr(void** l)
 {
-	void *c = l;
-	while (c != NULL) {
-		c = (void *)*(size_t*)(c) + getpagesize() - 1;
-	}
-	return (c);
+	void *c = *l;
+	if (c == NULL)
+		return NULL;
+	while (get_value(c + getpagesize() - SIZE) != 0)
+		c = (void *)get_value(c + getpagesize() - SIZE);
+	return (c + getpagesize() - SIZE);
 }

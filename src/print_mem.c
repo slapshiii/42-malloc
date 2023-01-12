@@ -1,6 +1,8 @@
 #include "../ft_malloc.h"
 
 void hexdump(const void* data, size_t size) {
+	if (data == NULL || size == 0)
+		return;
 	char ascii[9];
 	size_t i, j;
 	ascii[8] = '\0';

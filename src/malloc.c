@@ -11,7 +11,6 @@ buckets_t b = {
 void    ft_free(void *ptr) {
     size_t size = GETSIZE(ptr - SIZE);
     if (size < (size_t)getpagesize()/4) {
-       // res = allocate(&b.lst_page_s, &b.lst_free_s, size);
         desallocate(ptr - SIZE, &b.lst_free_s, size);
     }
     else if (size < (size_t)getpagesize()) {
@@ -38,12 +37,21 @@ void    *ft_malloc(size_t size) {
 }
 
 void    *ft_realloc(void *ptr, size_t size) {
-    (void)ptr;
-    (void)size;
-    return (NULL);
+    void *res = ft_malloc(size);
+    if (res != NULL) {
+        ft_memmove(res, ptr, GETSIZE(ptr - SIZE));
+        ft_free(ptr);
+    }
+    return (res);
 }
 
 void    show_alloc_mem() {
-    
+    size_t total = 0;
+    printf("TINY : %lX\n", (unsigned long)b.lst_page_s);
+    total += print_bucket(b.lst_page_s);
+    printf("SMALL : %lX\n", (unsigned long)b.lst_page_m);
+    total += print_bucket(b.lst_page_m);
+
+    printf("Total : %ld bytes\n", total);
 }
 

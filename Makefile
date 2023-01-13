@@ -24,16 +24,13 @@ CC=gcc
 
 all:	${NAME}
 
-${NAME}: libft.a ${OBJS}
-	${CC} ${CFLAGS} -shared -o ${NAME} ${OBJS} -L$(LIBFTDIR) -lft
+${NAME}: ${OBJS}
+	${CC} ${CFLAGS} -shared -o ${NAME} ${OBJS}
 	-ln -sf ${NAME} libft_malloc.so
 
 $(OBJDIR)/%.o:	$(SRCDIR)/%.c ft_malloc.h
 	@mkdir -p $(OBJDIR)
-	${CC} ${CFLAGS} -c $< -o $@ -L$(LIBFTDIR) -lft -I./$(LIBFTDIR)
-
-libft.a:
-	$(MAKE) -C $(LIBFTDIR)/
+	${CC} ${CFLAGS} -c $< -o $@ 
 
 test: ${NAME}
 	${CC} -I. -o a.out main.c -L. -lft_malloc

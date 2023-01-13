@@ -2,12 +2,9 @@
 #ifndef FT_MALLOC_H
 #define FT_MALLOC_H
 
-#include <stdlib.h>
-#include <unistd.h>
 #include <sys/mman.h>
-
-#include "./libft/libft.h"
 #include <stdio.h>
+#include <unistd.h>
 
 #if defined(__x86_64__)
 /* 64 bit detected */
@@ -46,9 +43,9 @@ typedef struct  buckets_s {
 
 buckets_t b;
 
-void    ft_free(void *ptr);
-void    *ft_malloc(size_t size);
-void    *ft_realloc(void *ptr, size_t size);
+void    free(void *ptr);
+void    *malloc(size_t size);
+void    *realloc(void *ptr, size_t size);
 void    show_alloc_mem();
 
 void    *allocate(void** l, void **fl, size_t s);
@@ -67,5 +64,6 @@ void    *get_first_fit(void* l, size_t s);
 void    *get_last_free(void** l);
 size_t	print_bucket(void *root);
 void    hexdump(const void* data, size_t size);
+void	*ft_memmove(void *dst, const void *src, size_t len);
 
 #endif

@@ -20,7 +20,7 @@ static void    *create_new_page() {
 		NULL,
 		pagesize,
 		PROT_READ|PROT_WRITE, 
-		MAP_SHARED|MAP_ANONYMOUS,
+		MAP_SHARED|MAP_ANONYMOUS|MAP_POPULATE,
 		-1, 0
 	);
 	if (new_page == MAP_FAILED)
@@ -121,7 +121,7 @@ void	desallocate(void *ptr, void **fl, size_t size) {
 		if (*listpage == res) {
 			*listpage = (void *)get_value(res + pagesize - SIZE);
 		} else {
-			void *cur = *listpage;
+			void *cur = *listpage; //CHECK THOSE LINES
 			while((void *)get_value(cur + pagesize - SIZE) != res)
 				cur = (void *)get_value(cur + pagesize - SIZE);
 			set_value(cur + pagesize - SIZE, get_value(res + pagesize - SIZE));

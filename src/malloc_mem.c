@@ -83,7 +83,9 @@ void	*format_chunk_f(void *addr, void **fl, size_t s) {
 }
 
 void	*free_merge_contiguous(void *ptr) {
+	hexdump((void *)((size_t)ptr & (~0x0FFF)), 4096);
 	void* next_chunk_ptr = (ptr + GETSIZE(ptr) + 2 * SIZE);
+	printf("%ld %ld\n", get_value(ptr + FDPTR), (size_t)next_chunk_ptr);
 	if (get_value(ptr + FDPTR) == (size_t)next_chunk_ptr)
 	{
 		void *ptr_footer = ptr + GETSIZE(ptr) + GETSIZE(next_chunk_ptr) + 3 * SIZE;
@@ -105,9 +107,11 @@ void	*free_merge_contiguous(void *ptr) {
 
 			for (size_t i = 0; i < SIZE * 4; i += SIZE)
 				set_value(ptr - SIZE + i, 0);
+			hexdump((void *)((size_t)ptr & (~0x0FFF)), 4096);
 			return (prev_chunk_ptr);
 		}
 	}
+	hexdump((void *)((size_t)ptr & (~0x0FFF)), 4096);
 	return (ptr);
 }
 
@@ -135,7 +139,7 @@ int		try_extend_chunk(void *ptr, size_t size) {
 		fl = &b.lst_free_s;
 		f_bucket = 0;
 	}
-	else if (size < (size_t)getpagesize() && oldsize < (size_t)getpagesize()) {
+	else if (size >= (size_t)getpagesize()/4 && size < (size_t)getpagesize() && oldsize < (size_t)getpagesize()) {
 		fl = &b.lst_free_m;
         f_bucket = 0;
 	}

@@ -8,7 +8,7 @@ buckets_t b = {
         .lst_free_m = NULL
 };
 
-void    ft_free(void *ptr) {
+void    free(void *ptr) {
     size_t size = GETSIZE(ptr - SIZE);
     if (size < (size_t)getpagesize()/4) {
         desallocate(ptr - SIZE, &b.lst_free_s, size);
@@ -21,7 +21,7 @@ void    ft_free(void *ptr) {
     }
 }
 
-void    *ft_malloc(size_t size) {
+void    *malloc(size_t size) {
     void    *res = NULL;
 
     if (size < (size_t)getpagesize()/4) {
@@ -36,12 +36,13 @@ void    *ft_malloc(size_t size) {
     return (res);
 }
 
-void    *ft_realloc(void *ptr, size_t size) {
+void    *realloc(void *ptr, size_t size) {
     if (try_extend_chunk(ptr, size)) {
-        void *res = ft_malloc(size);
+        void *res = malloc(size);
         if (res != NULL) {
-            ft_memmove(res, ptr, GETSIZE(ptr - SIZE));
-            ft_free(ptr);
+            size = (GETSIZE(ptr - SIZE) < size) ? GETSIZE(ptr - SIZE) : size;
+            ft_memmove(res, ptr, size);
+            free(ptr);
         }
         return (res);
     }

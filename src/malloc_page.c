@@ -2,8 +2,6 @@
 
 /**
  *      page-> +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- *             |             Back pointer to previous page in page list        |
- *             +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
  *     `head:' |             Size of chunk, in bytes                     |A|0|1|
  *             +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
  *             .                                                               .
@@ -34,8 +32,8 @@ void    *create_new_page() {
 	set_value(new_page + usable_size + SIZE * 2	, 0b01);		// mark page end
 	set_value(new_page + usable_size + SIZE * 3	, 0);			// nxt page ptr
 
-	// hexdump(new_page, pagesize);
-	printf("%p -- new page\n", new_page);
+	// hexdump((new_page + pagesize) - 5 * SIZE, 5 * SIZE);
+	//printf("%p -- new page\n", new_page);
 	return new_page;
 }
 
@@ -63,9 +61,31 @@ void    *allocate(void **l, void **fl, size_t s) {
 }
 
 void    *allocate_large(void** l, size_t s) {
-	(void)s;
-	(void)l;
-	return (NULL);
+	size_t	size_allocated;
+	s += 5 * SIZE;
+	if (s % SIZE)
+		size_allocated = (s + SIZE) & ~(SIZE - 1);
+	else
+		size_allocated = s;
+	void *new_page = mmap(
+		NULL,
+		size_allocated,
+		PROT_READ|PROT_WRITE, 
+		MAP_SHARED|MAP_ANONYMOUS,
+		-1, 0
+	);
+	if (new_page == MAP_FAILED)
+		return (NULL);
+	size_t usable_size = size_allocated - 5 * SIZE;
+	set_value(new_page							, usable_size + 0b011);	// chunk header
+	set_value(new_page + usable_size + SIZE		, usable_size + 0b011);	// chunk footer
+	set_value(new_page + usable_size + SIZE	* 2	, 0b01);				// padding
+	set_value(new_page + usable_size + SIZE * 3	, (size_t) *l);			// nxt page ptr
+	set_value(new_page + usable_size + SIZE * 4	, 0);					// prv page ptr
+	if (*l != NULL)
+		set_value(*l + GETSIZE(*l) + SIZE * 4, (size_t)new_page);
+	*l = new_page;
+	return new_page + SIZE;
 }
 
 void	desallocate(void *ptr, void **fl, size_t size) {
@@ -95,8 +115,16 @@ void	desallocate(void *ptr, void **fl, size_t size) {
 }
 
 void	desallocate_large(void *ptr, size_t size) {
-	(void)ptr;
-	(void)size;
+	void *prev, *next;
+	next = (void *)get_value(ptr + size + SIZE * 3);
+	prev = (void *)get_value(ptr + size + SIZE * 4);
+	if (next != NULL)
+		set_value(next + GETSIZE(next) + SIZE * 4, (size_t)prev);
+	if (prev != NULL)
+		set_value(prev + GETSIZE(prev) + SIZE * 3, (size_t)next);
+	if (b.lst_page_l == ptr)
+		b.lst_page_l = next;
+	munmap(ptr, size + 5 * SIZE);
 }
 
 void    *get_last_page_nxt_ptr(void** l)

@@ -31,7 +31,7 @@ void    *ft_malloc(size_t size) {
         res = allocate(&b.lst_page_m, &b.lst_free_m, size);
     }
     else {
-        res = allocate_large(&b.lst_page_s, size);
+        res = allocate_large(&b.lst_page_l, size);
     }
     return (res);
 }
@@ -51,7 +51,8 @@ void    show_alloc_mem() {
     total += print_bucket(b.lst_page_s);
     printf("SMALL : %lX\n", (unsigned long)b.lst_page_m);
     total += print_bucket(b.lst_page_m);
-
+    printf("LARGE : %lX\n", (unsigned long)b.lst_page_l);
+    total += print_bucket(b.lst_page_l);
     printf("Total : %ld bytes\n", total);
 }
 

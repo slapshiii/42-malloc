@@ -1,25 +1,5 @@
 #include "../ft_malloc.h"
 
-/**
- *     chunk-> +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- *             |             Size of previous chunk, if unallocated (P clear)  |
- *             +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- *     `head:' |             Size of chunk, in bytes                     |A|0|P|
- *       mem-> +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- *             |             Back pointer to previous chunk in freelist        |
- *             +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- *             |             Forward pointer to next chunk in freelist         |
- *             +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- *             |             Unused space (may be 0 bytes long)                .
- *             .                                                               .
- *             .                                                               |
- *             +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- *     `foot:' |             Size of chunk, in bytes                           |
- * nextchunk-> +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- *             |             Size of next chunk, in bytes                |A|0|P|
- *             +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- */
-
 void    *get_first_fit(void* l, size_t s) {
 	void *c = l;
 	while (c != NULL && GETSIZE(c) < s) {
@@ -36,33 +16,37 @@ void    *get_last_free(void** l) {
 	return (c);
 }
 
-void	*free_merge_contiguous(void *ptr) {
-	void* next_chunk_ptr = (ptr + GETSIZE(ptr) + 2 * SIZE);
-	if (get_value(ptr + FDPTR) == (size_t)next_chunk_ptr)
-	{
-		void *ptr_footer = ptr + SIZE + GETSIZE(ptr);
-		set_value(ptr			, GETSIZE(ptr) + GETSIZE(next_chunk_ptr) + 2 * SIZE);
-		set_value(ptr_footer	, GETSIZE(ptr));
-		set_value(ptr + FDPTR	, get_value(next_chunk_ptr + FDPTR));
-
-		for (size_t i = 0; i < SIZE * 4; i += SIZE)
-			set_value(next_chunk_ptr - SIZE + i, 0);
-	}
-	if ((size_t)ptr & (0x0FFF)) {
-		void* prev_chunk_ptr = (ptr - GETSIZE(ptr - SIZE) - 2 * SIZE);
-		if (get_value(ptr + BKPTR) == (size_t)prev_chunk_ptr)
-		{
-			void *prev_chunk_footer = prev_chunk_ptr + GETSIZE(prev_chunk_ptr) + SIZE;
-			set_value(prev_chunk_ptr			, GETSIZE(ptr) + GETSIZE(prev_chunk_ptr) + 2 * SIZE);
-			set_value(prev_chunk_footer			, GETSIZE(prev_chunk_ptr));
-			set_value(prev_chunk_ptr + FDPTR	, get_value(ptr + FDPTR));
-
-			for (size_t i = 0; i < SIZE * 4; i += SIZE)
-				set_value(ptr - SIZE + i, 0);
-			return (prev_chunk_ptr);
+void hexdump(const void* data, size_t size) {
+	if (data == NULL || size == 0)
+		return;
+	char ascii[9];
+	size_t i, j;
+	ascii[8] = '\0';
+	for (i = 0; i < size; ++i) {
+        if (i % 8 == 0)
+            printf("%p  |  ", data + i);
+		printf("%02X ", ((unsigned char*)data)[i]);
+		if (((unsigned char*)data)[i] >= ' ' && ((unsigned char*)data)[i] <= '~') {
+			ascii[i % 8] = ((unsigned char*)data)[i];
+		} else {
+			ascii[i % 8] = '.';
+		}
+		if ((i+1) % 4 == 0 || i+1 == size) {
+			printf(" ");
+			if ((i+1) % 8 == 0) {
+				printf("|  %s \n", ascii);
+			} else if (i+1 == size) {
+				ascii[(i+1) % 8] = '\0';
+				if ((i+1) % 8 <= 4) {
+					printf(" ");
+				}
+				for (j = (i+1) % 8; j < 8; ++j) {
+					printf("   ");
+				}
+				printf("|  %s \n", ascii);
+			}
 		}
 	}
-	return (ptr);
 }
 
 size_t	print_bucket(void *root) {
@@ -82,12 +66,4 @@ size_t	print_bucket(void *root) {
 			root = (void *)get_value(root + FDPTR);
     }
 	return (res);
-}
-
-void	set_value(void *addr, size_t val) {
-	*(size_t*)(addr) = val;
-}
-
-size_t	get_value(void *addr) {
-	return *(size_t*)(addr);
 }

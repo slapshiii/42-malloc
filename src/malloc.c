@@ -37,12 +37,15 @@ void    *ft_malloc(size_t size) {
 }
 
 void    *ft_realloc(void *ptr, size_t size) {
-    void *res = ft_malloc(size);
-    if (res != NULL) {
-        ft_memmove(res, ptr, GETSIZE(ptr - SIZE));
-        ft_free(ptr);
+    if (try_extend_chunk(ptr, size)) {
+        void *res = ft_malloc(size);
+        if (res != NULL) {
+            ft_memmove(res, ptr, GETSIZE(ptr - SIZE));
+            ft_free(ptr);
+        }
+        return (res);
     }
-    return (res);
+    return (ptr);
 }
 
 void    show_alloc_mem() {

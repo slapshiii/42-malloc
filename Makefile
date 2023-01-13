@@ -11,8 +11,7 @@ LIBFTDIR := libft
 C_FILE =	malloc.c \
 			malloc_page.c \
 			malloc_mem.c \
-			malloc_utils.c \
-			print_mem.c
+			malloc_utils.c
 
 SRCS =	$(addprefix $(SRCDIR)/, $(C_FILE))
 OBJS = 	$(addprefix $(OBJDIR)/, $(notdir $(SRCS:%.c=%.o)))

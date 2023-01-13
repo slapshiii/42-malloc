@@ -25,7 +25,6 @@ void	*format_chunk_a(void *addr, void **fl, size_t s) {
 	size_t	next_free = get_value(addr + FDPTR);
 
 	void	*res = (void *)(addr + SIZE);
-
 	size_t	size_free = GETSIZE(addr);
 	size_t	size_allocated;
 	if (s < MINSIZE)
@@ -81,4 +80,93 @@ void	*format_chunk_f(void *addr, void **fl, size_t s) {
 	set_value(addr, s);
 	set_value(addr + s + SIZE, s);
 	return (addr);
+}
+
+void	*free_merge_contiguous(void *ptr) {
+	void* next_chunk_ptr = (ptr + GETSIZE(ptr) + 2 * SIZE);
+	if (get_value(ptr + FDPTR) == (size_t)next_chunk_ptr)
+	{
+		void *ptr_footer = ptr + GETSIZE(ptr) + GETSIZE(next_chunk_ptr) + 3 * SIZE;
+		set_value(ptr			, GETSIZE(ptr) + GETSIZE(next_chunk_ptr) + 2 * SIZE);
+		set_value(ptr_footer	, GETSIZE(ptr));
+		set_value(ptr + FDPTR	, get_value(next_chunk_ptr + FDPTR));
+		for (size_t i = 0; i < SIZE * 4; i += SIZE)
+			set_value(next_chunk_ptr - SIZE + i, 0);
+	}
+	if ((size_t)ptr & (0x0FFF)) {
+		void *prev_chunk_footer = (ptr - GETSIZE(ptr - 2 * SIZE) - 1 * SIZE);
+		void *prev_chunk_ptr = prev_chunk_footer - GETSIZE(prev_chunk_footer) - SIZE;
+		if (get_value(ptr + BKPTR) == (size_t)prev_chunk_ptr)
+		{
+			prev_chunk_footer = ptr + GETSIZE(ptr) + SIZE;
+			set_value(prev_chunk_ptr			, GETSIZE(ptr) + GETSIZE(prev_chunk_ptr) + 2 * SIZE);
+			set_value(prev_chunk_footer			, GETSIZE(prev_chunk_ptr));
+			set_value(prev_chunk_ptr + FDPTR	, get_value(ptr + FDPTR));
+
+			for (size_t i = 0; i < SIZE * 4; i += SIZE)
+				set_value(ptr - SIZE + i, 0);
+			return (prev_chunk_ptr);
+		}
+	}
+	return (ptr);
+}
+
+/**
+ *	Tries to extend the allocated chunk with contiguous free chunk
+ *	@param ptr	: the chunk pointer
+ *	@param size	: the desired size
+ *	@return int	: 0 in case of success, 1 otherwise
+ */
+int		try_extend_chunk(void *ptr, size_t size) {
+	size_t oldsize = GETSIZE(ptr - SIZE);
+	void *ptr_next = ptr + oldsize + SIZE;
+	size_t free_size = oldsize + GETSIZE(ptr_next) + 2 * SIZE;
+	size_t realloc_size = oldsize + GETSIZE(ptr_next) + 2 * SIZE;
+	size_t f_bucket = 1;
+	void **fl = NULL;
+
+	if (size < MINSIZE)
+		size = MINSIZE;
+	else if (size % SIZE)
+		size = (size + SIZE) & ~(SIZE - 1);
+	if (oldsize == size)
+		return (0);
+	if (size < (size_t)getpagesize()/4 && oldsize < (size_t)getpagesize()/4) {
+		fl = &b.lst_free_s;
+		f_bucket = 0;
+	}
+	else if (size < (size_t)getpagesize() && oldsize < (size_t)getpagesize()) {
+		fl = &b.lst_free_m;
+        f_bucket = 0;
+	}
+	if (ISALLOC(ptr_next) || realloc_size < size || f_bucket)
+		return (1);
+	if (free_size - size >= MINSIZE) {
+		free_size = free_size - size - 2 * SIZE;
+		realloc_size = realloc_size - free_size - 2 * SIZE;
+		set_value(ptr + realloc_size + 3 * SIZE	, get_value(ptr_next + BKPTR));
+		set_value(ptr + realloc_size + 2 * SIZE	, get_value(ptr_next + FDPTR));
+		set_value(ptr + realloc_size + SIZE		, free_size);
+		set_value(ptr + realloc_size + free_size, free_size);
+		if (*fl == ptr_next)
+			*fl = ptr + realloc_size + SIZE;
+	} else {
+		if (get_value(ptr_next + FDPTR))
+			set_value((void *)get_value(ptr_next + FDPTR) + BKPTR	, get_value(ptr_next + BKPTR));
+		if (get_value(ptr_next + BKPTR))
+			set_value((void *)get_value(ptr_next + BKPTR) + FDPTR	, get_value(ptr_next + FDPTR));
+		if (*fl == ptr_next)
+			*fl = (void *)get_value(ptr_next + FDPTR);
+	}
+	set_value(ptr - SIZE			, realloc_size + 0b001);
+	set_value(ptr + realloc_size 	, realloc_size + 0b001);
+	return (0);
+}
+
+void	set_value(void *addr, size_t val) {
+	*(size_t*)(addr) = val;
+}
+
+size_t	get_value(void *addr) {
+	return *(size_t*)(addr);
 }

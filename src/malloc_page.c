@@ -14,8 +14,7 @@
  *             |             Forward pointer to next page in page list         |
  *             +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
  */
-
-void    *create_new_page() {
+static void    *create_new_page() {
 	int pagesize = getpagesize();
 	void *new_page = mmap(
 		NULL,
@@ -31,10 +30,17 @@ void    *create_new_page() {
 	set_value(new_page + usable_size + SIZE		, usable_size);	// chunk footer
 	set_value(new_page + usable_size + SIZE * 2	, 0b01);		// mark page end
 	set_value(new_page + usable_size + SIZE * 3	, 0);			// nxt page ptr
-
-	// hexdump((new_page + pagesize) - 5 * SIZE, 5 * SIZE);
-	//printf("%p -- new page\n", new_page);
 	return new_page;
+}
+
+static void    *get_last_page_nxt_ptr(void** l)
+{
+	void *c = *l;
+	if (c == NULL)
+		return NULL;
+	while (get_value(c + getpagesize() - SIZE) != 0)
+		c = (void *)get_value(c + getpagesize() - SIZE);
+	return (c + getpagesize() - SIZE);
 }
 
 void    *allocate(void **l, void **fl, size_t s) {
@@ -60,6 +66,22 @@ void    *allocate(void **l, void **fl, size_t s) {
 	return (res);
 }
 
+/**
+ *      page-> +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *     `head:' |             Size of chunk, in bytes                     |A|0|1|
+ *             +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *             .                                                               .
+ *             .                                                               .
+ *             +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *   `footer:' |             Size of chunk, in bytes                     |A|0|1|
+ *             +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *             |             Mark the end of page                        |0|0|1|
+ *             +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *             |             Forward pointer to next page in page list         |
+ *             +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *             |             Backward pointer to previous page in page list    |
+ *             +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ */
 void    *allocate_large(void** l, size_t s) {
 	size_t	size_allocated;
 	s += 5 * SIZE;
@@ -125,14 +147,4 @@ void	desallocate_large(void *ptr, size_t size) {
 	if (b.lst_page_l == ptr)
 		b.lst_page_l = next;
 	munmap(ptr, size + 5 * SIZE);
-}
-
-void    *get_last_page_nxt_ptr(void** l)
-{
-	void *c = *l;
-	if (c == NULL)
-		return NULL;
-	while (get_value(c + getpagesize() - SIZE) != 0)
-		c = (void *)get_value(c + getpagesize() - SIZE);
-	return (c + getpagesize() - SIZE);
 }

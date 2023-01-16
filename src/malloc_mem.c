@@ -76,17 +76,19 @@ void	*format_chunk_f(void *addr, void **fl, size_t s) {
 		set_value(addr + BKPTR, (size_t)prev_f);
 		if (prev_f != NULL)
 			set_value(prev_f + FDPTR, (size_t)addr);
+		if (next_f != NULL)
+			set_value(next_f + BKPTR, (size_t)addr);
 	}
 	set_value(addr, s);
 	set_value(addr + s + SIZE, s);
+	// hexdump((void *)((size_t)addr & (~0x0FFF)), 4096);
 	return (addr);
 }
 
 void	*free_merge_contiguous(void *ptr) {
-	hexdump((void *)((size_t)ptr & (~0x0FFF)), 4096);
 	void* next_chunk_ptr = (ptr + GETSIZE(ptr) + 2 * SIZE);
-	printf("%ld %ld\n", get_value(ptr + FDPTR), (size_t)next_chunk_ptr);
-	if (get_value(ptr + FDPTR) == (size_t)next_chunk_ptr)
+	// if (get_value(ptr + FDPTR) == (size_t)next_chunk_ptr)
+	if (!ISALLOC(next_chunk_ptr))
 	{
 		void *ptr_footer = ptr + GETSIZE(ptr) + GETSIZE(next_chunk_ptr) + 3 * SIZE;
 		set_value(ptr			, GETSIZE(ptr) + GETSIZE(next_chunk_ptr) + 2 * SIZE);
@@ -98,7 +100,8 @@ void	*free_merge_contiguous(void *ptr) {
 	if ((size_t)ptr & (0x0FFF)) {
 		void *prev_chunk_footer = (ptr - GETSIZE(ptr - 2 * SIZE) - 1 * SIZE);
 		void *prev_chunk_ptr = prev_chunk_footer - GETSIZE(prev_chunk_footer) - SIZE;
-		if (get_value(ptr + BKPTR) == (size_t)prev_chunk_ptr)
+		// if (get_value(ptr + BKPTR) == (size_t)prev_chunk_ptr)
+		if (!ISALLOC(prev_chunk_ptr))
 		{
 			prev_chunk_footer = ptr + GETSIZE(ptr) + SIZE;
 			set_value(prev_chunk_ptr			, GETSIZE(ptr) + GETSIZE(prev_chunk_ptr) + 2 * SIZE);
@@ -107,11 +110,9 @@ void	*free_merge_contiguous(void *ptr) {
 
 			for (size_t i = 0; i < SIZE * 4; i += SIZE)
 				set_value(ptr - SIZE + i, 0);
-			hexdump((void *)((size_t)ptr & (~0x0FFF)), 4096);
 			return (prev_chunk_ptr);
 		}
 	}
-	hexdump((void *)((size_t)ptr & (~0x0FFF)), 4096);
 	return (ptr);
 }
 

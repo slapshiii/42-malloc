@@ -116,6 +116,7 @@ void	desallocate(void *ptr, void **fl, size_t size) {
 	size_t pagesize = (size_t)getpagesize();
 	format_chunk_f(ptr, fl, size);
 	res = free_merge_contiguous(ptr);
+	// printf("%p - %ld %ld -- res size\n", res, GETSIZE(res), pagesize - 4 * SIZE);
 	if (GETSIZE(res) == pagesize - 4 * SIZE) {
 		listpage = (size < pagesize/4) ? &b.lst_page_s : &b.lst_page_m;
 		if (*listpage == res) {
@@ -126,12 +127,15 @@ void	desallocate(void *ptr, void **fl, size_t size) {
 				cur = (void *)get_value(cur + pagesize - SIZE);
 			set_value(cur + pagesize - SIZE, get_value(res + pagesize - SIZE));
 		}
+
 		if (*fl == res)
 			*fl = (void *)get_value(res + FDPTR);
 		if (get_value(res + FDPTR) != 0)
 			set_value((void *)get_value(res + FDPTR) + BKPTR, get_value(res + BKPTR));
 		if (get_value(res + BKPTR) != 0)
 			set_value((void *)get_value(res + BKPTR) + FDPTR, get_value(res + FDPTR));
+		// printf("%p -- munmap\n%p -- freelist\n%p -- list page\n", res, *fl, *listpage);
+		// hexdump((void *)((size_t)res & (~0x0FFF)), 4096);
 		munmap(res, pagesize);
 	}
 }

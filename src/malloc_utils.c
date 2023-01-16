@@ -23,27 +23,34 @@ void hexdump(const void* data, size_t size) {
 	size_t i, j;
 	ascii[8] = '\0';
 	for (i = 0; i < size; ++i) {
-        if (i % 8 == 0)
-            printf("%p  |  ", data + i);
-		printf("%02X ", ((unsigned char*)data)[i]);
+        if (i % 8 == 0) {
+			ft_putptr_fd(&data + i, 1);
+			ft_putstr_fd("  |  ", 1);
+		}
+		ft_puthex_char(((unsigned char*)data)[i], 1);
+		ft_putstr_fd(" ", 1);
 		if (((unsigned char*)data)[i] >= ' ' && ((unsigned char*)data)[i] <= '~') {
 			ascii[i % 8] = ((unsigned char*)data)[i];
 		} else {
 			ascii[i % 8] = '.';
 		}
 		if ((i+1) % 4 == 0 || i+1 == size) {
-			printf(" ");
+			ft_putstr_fd(" ", 1);
 			if ((i+1) % 8 == 0) {
-				printf("|  %s \n", ascii);
+				ft_putstr_fd("|  ", 1);
+				ft_putstr_fd(ascii, 1);
+				ft_putstr_fd(" \n", 1);
 			} else if (i+1 == size) {
 				ascii[(i+1) % 8] = '\0';
 				if ((i+1) % 8 <= 4) {
-					printf(" ");
+					ft_putstr_fd(" ", 1);
 				}
 				for (j = (i+1) % 8; j < 8; ++j) {
-					printf("   ");
+					ft_putstr_fd("   ", 1);
 				}
-				printf("|  %s \n", ascii);
+				ft_putstr_fd("|  ", 1);
+				ft_putstr_fd(ascii, 1);
+				ft_putstr_fd(" \n", 1);
 			}
 		}
 	}
@@ -53,13 +60,17 @@ size_t	print_bucket(void *root) {
 	size_t res = 0;
 	while (root != NULL && GETSIZE(root) != 0)
     {
-        printf("%lX - %lX | %ld bytes",
-                (unsigned long)root, (unsigned long)(root + GETSIZE(root)), GETSIZE(root));
+		ft_putptr_fd(root, 1);
+		ft_putstr_fd(" - ", 1);
+		ft_putptr_fd(root + GETSIZE(root), 1);
+		ft_putstr_fd(" | ", 1);
+		ft_putnbr_fd((int)GETSIZE(root), 1);
+		ft_putstr_fd(" bytes", 1);
         if (ISALLOC(root)) {
 			res += GETSIZE(root);
-            printf(" allocated\n");
+			ft_putstr_fd(" allocated\n", 1);
         } else {
-            printf(" free\n");
+			ft_putstr_fd(" free\n", 1);
         }
         root=(size_t*)(root + GETSIZE(root) + 2 * SIZE);
 		if (get_value(root) == 0b01)

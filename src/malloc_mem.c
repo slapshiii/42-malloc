@@ -81,7 +81,6 @@ void	*format_chunk_f(void *addr, void **fl, size_t s) {
 	}
 	set_value(addr, s);
 	set_value(addr + s + SIZE, s);
-	// hexdump((void *)((size_t)addr & (~0x0FFF)), 4096);
 	return (addr);
 }
 

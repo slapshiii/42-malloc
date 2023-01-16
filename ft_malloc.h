@@ -66,4 +66,9 @@ size_t	print_bucket(void *root);
 void    hexdump(const void* data, size_t size);
 void	*ft_memmove(void *dst, const void *src, size_t len);
 
+void    ft_putptr_fd(void *p, int fd);
+void	ft_putnbr_fd(int n, int fd);
+void	ft_putstr_fd(char *s, int fd);
+void    ft_puthex_char(unsigned char c, int fd);
+
 #endif

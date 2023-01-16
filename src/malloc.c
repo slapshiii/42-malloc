@@ -51,12 +51,20 @@ void    *realloc(void *ptr, size_t size) {
 
 void    show_alloc_mem() {
     size_t total = 0;
-    printf("TINY : %lX\n", (unsigned long)b.lst_page_s);
+    ft_putstr_fd("TINY : ", 1);
+	ft_putptr_fd(b.lst_page_s, 1);
+    ft_putstr_fd("\n", 1);
     total += print_bucket(b.lst_page_s);
-    printf("SMALL : %lX\n", (unsigned long)b.lst_page_m);
+    ft_putstr_fd("SMALL : ", 1);
+	ft_putptr_fd(b.lst_page_m, 1);
+    ft_putstr_fd("\n", 1);
     total += print_bucket(b.lst_page_m);
-    printf("LARGE : %lX\n", (unsigned long)b.lst_page_l);
+    ft_putstr_fd("LARGE : ", 1);
+	ft_putptr_fd(b.lst_page_l, 1);
+    ft_putstr_fd("\n", 1);
     total += print_bucket(b.lst_page_l);
-    printf("Total : %ld bytes\n", total);
+    ft_putstr_fd("Total : ", 1);
+	ft_putnbr_fd(total, 1);
+    ft_putstr_fd(" bytes\n", 1);
 }
 

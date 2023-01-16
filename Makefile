@@ -11,13 +11,15 @@ LIBFTDIR := libft
 C_FILE =	malloc.c \
 			malloc_page.c \
 			malloc_mem.c \
-			malloc_utils.c
+			malloc_utils.c \
+			printer.c
 
 SRCS =	$(addprefix $(SRCDIR)/, $(C_FILE))
 OBJS = 	$(addprefix $(OBJDIR)/, $(notdir $(SRCS:%.c=%.o)))
 
 CFLAGS += -Wall -Werror -Wextra -g3
 CFLAGS += -fPIC
+# CFLAGS += fsanitize=address
 
 #CC=LD_LIBRARY_PATH=$(PWD) gcc
 CC=gcc

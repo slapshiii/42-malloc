@@ -3,8 +3,11 @@
 #define FT_MALLOC_H
 
 #include <sys/mman.h>
-#include <stdio.h>
+//#include <stdio.h>
 #include <unistd.h>
+#include <pthread.h>
+#include <stdlib.h>
+#include <libft.h>
 
 #if defined(__x86_64__)
 /* 64 bit detected */
@@ -42,6 +45,7 @@ typedef struct  buckets_s {
 }               buckets_t;
 
 buckets_t b;
+pthread_mutex_t mutex_malloc;
 
 void    free(void *ptr);
 void    *malloc(size_t size);
@@ -64,11 +68,8 @@ void    *get_first_fit(void* l, size_t s);
 void    *get_last_free(void** l);
 size_t	print_bucket(void *root);
 void    hexdump(const void* data, size_t size);
-void	*ft_memmove(void *dst, const void *src, size_t len);
 
 void    ft_putptr_fd(void *p, int fd);
-void	ft_putnbr_fd(int n, int fd);
-void	ft_putstr_fd(char *s, int fd);
 void    ft_puthex_char(unsigned char c, int fd);
 
 #endif

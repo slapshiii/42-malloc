@@ -1,14 +1,17 @@
 #include "../ft_malloc.h"
 
 buckets_t b = {
-        .lst_page_s = NULL,
-        .lst_page_m = NULL,
-        .lst_page_l = NULL,
-        .lst_free_s = NULL,
-        .lst_free_m = NULL
+    .lst_page_s = NULL,
+    .lst_page_m = NULL,
+    .lst_page_l = NULL,
+    .lst_free_s = NULL,
+    .lst_free_m = NULL
 };
 
+pthread_mutex_t mutex_malloc = PTHREAD_MUTEX_INITIALIZER;
+
 void    free(void *ptr) {
+    pthread_mutex_lock(&mutex_malloc);
     size_t size = GETSIZE(ptr - SIZE);
     if (size < (size_t)getpagesize()/4) {
         desallocate(ptr - SIZE, &b.lst_free_s, size);
@@ -19,9 +22,12 @@ void    free(void *ptr) {
     else {
         desallocate_large(ptr - SIZE, size);
     }
+    pthread_mutex_unlock(&mutex_malloc);
 }
 
 void    *malloc(size_t size) {
+    ft_putstr_fd((char *)path, 1);
+    pthread_mutex_lock(&mutex_malloc);
     void    *res = NULL;
 
     if (size < (size_t)getpagesize()/4) {
@@ -33,10 +39,12 @@ void    *malloc(size_t size) {
     else {
         res = allocate_large(&b.lst_page_l, size);
     }
+    pthread_mutex_unlock(&mutex_malloc);
     return (res);
 }
 
 void    *realloc(void *ptr, size_t size) {
+    pthread_mutex_lock(&mutex_malloc);
     if (try_extend_chunk(ptr, size)) {
         void *res = malloc(size);
         if (res != NULL) {
@@ -44,12 +52,14 @@ void    *realloc(void *ptr, size_t size) {
             ft_memmove(res, ptr, size);
             free(ptr);
         }
-        return (res);
+        ptr = res;
     }
+    pthread_mutex_unlock(&mutex_malloc);
     return (ptr);
 }
 
 void    show_alloc_mem() {
+    pthread_mutex_lock(&mutex_malloc);
     size_t total = 0;
     ft_putstr_fd("TINY : ", 1);
 	ft_putptr_fd(b.lst_page_s, 1);
@@ -66,5 +76,6 @@ void    show_alloc_mem() {
     ft_putstr_fd("Total : ", 1);
 	ft_putnbr_fd(total, 1);
     ft_putstr_fd(" bytes\n", 1);
+    pthread_mutex_unlock(&mutex_malloc);
 }
 

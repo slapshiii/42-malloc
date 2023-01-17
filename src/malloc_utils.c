@@ -79,24 +79,3 @@ size_t	print_bucket(void *root) {
 	return (res);
 }
 
-void	*ft_memmove(void *dst, const void *src, size_t len)
-{
-	unsigned char	*c_dst;
-	unsigned char	*c_src;
-	size_t			i;
-
-	if (!dst && !src && len)
-		return (dst);
-	c_dst = (unsigned char *)dst;
-	c_src = (unsigned char *)src;
-	i = 0;
-	while (i < len)
-	{
-		if (c_dst < c_src)
-			c_dst[i] = c_src[i];
-		else
-			c_dst[len - 1 - i] = c_src[len - 1 - i];
-		++i;
-	}
-	return (dst);
-}

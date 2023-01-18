@@ -17,6 +17,7 @@ C_FILE =	malloc.c \
 			malloc_page.c \
 			malloc_mem.c \
 			malloc_utils.c \
+			malloc_debug.c \
 			printer.c
 
 SRCS =	$(addprefix $(SRCDIR)/, $(C_FILE))

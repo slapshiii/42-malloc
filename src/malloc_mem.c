@@ -135,12 +135,12 @@ int		try_extend_chunk(void *ptr, size_t size) {
 		size = (size + SIZE) & ~(SIZE - 1);
 	if (oldsize == size)
 		return (0);
-	if (size < (size_t)getpagesize()/4 && oldsize < (size_t)getpagesize()/4) {
-		fl = &b.lst_free_s;
+	if (size < m.pagesize/4 && oldsize < m.pagesize/4) {
+		fl = &m.lst_free_s;
 		f_bucket = 0;
 	}
-	else if (size >= (size_t)getpagesize()/4 && size < (size_t)getpagesize() && oldsize < (size_t)getpagesize()) {
-		fl = &b.lst_free_m;
+	else if (size >= m.pagesize/4 && size < m.pagesize && oldsize < m.pagesize) {
+		fl = &m.lst_free_m;
         f_bucket = 0;
 	}
 	if (ISALLOC(ptr_next) || realloc_size < size || f_bucket)

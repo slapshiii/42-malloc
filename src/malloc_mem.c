@@ -37,7 +37,6 @@ void	*format_chunk_a(void *addr, void **fl, size_t s) {
 	if (remaining < (int)(2 * SIZE)) {
 		size_allocated = size_free;
 	}
-
 	set_value(addr, size_allocated + 1);
 	set_value(res + size_allocated, size_allocated + 1);
 	if ((void*)prev_free != NULL){
@@ -56,6 +55,9 @@ void	*format_chunk_a(void *addr, void **fl, size_t s) {
 	}
 	if (*fl == addr)
 		*fl = (remaining >= (int)(2 * SIZE)) ? res + size_allocated + SIZE : (void*)next_free;
+	if (ft_strlen(m.debug.pattern_alloc))
+		fill_pattern(res, m.debug.pattern_alloc, size_allocated);
+	// hexdump(addr, GETSIZE(addr) + 2 * SIZE);
 	return (res);
 }
 
@@ -81,6 +83,8 @@ void	*format_chunk_f(void *addr, void **fl, size_t s) {
 	}
 	set_value(addr, s);
 	set_value(addr + s + SIZE, s);
+	// if (ft_strlen(m.debug.pattern_free))
+	// 	fill_pattern(addr + BKPTR + SIZE, m.debug.pattern_free, GETSIZE(addr) /2);
 	return (addr);
 }
 

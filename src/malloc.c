@@ -120,3 +120,16 @@ void    show_alloc_mem() {
 	pthread_mutex_unlock(&mutex_malloc);
 }
 
+void    show_alloc_mem_hex(void *ptr) {
+	if (m.debug.validate_ptrs && (
+		validate_ptr(m.lst_page_s, ptr - SIZE) != 1 &&
+		validate_ptr(m.lst_page_m, ptr - SIZE) != 1 &&
+		validate_ptr(m.lst_page_l, ptr - SIZE) != 1
+	))
+		abort_validate_ptr(1, ptr);
+	// pthread_mutex_lock(&mutex_malloc);
+	ft_putptr_fd(ptr, m.debug.output);
+	hexdump(ptr, GETSIZE(ptr - SIZE) - SIZE);
+	// pthread_mutex_unlock(&mutex_malloc);
+}
+

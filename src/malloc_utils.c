@@ -19,18 +19,19 @@ void    *get_last_free(void** l) {
 void hexdump(const void* data, size_t size) {
 	if (data == NULL || size == 0)
 		return;
+	unsigned char *stream = (unsigned char*)data;
 	char ascii[9];
 	size_t i, j;
 	ascii[8] = '\0';
 	for (i = 0; i < size; ++i) {
         if (i % 8 == 0) {
-			ft_putptr_fd(&data + i, m.debug.output);
+			ft_putptr_fd((void *)(data + i), m.debug.output);
 			ft_putstr_fd("  |  ", m.debug.output);
 		}
-		ft_puthex_char(((unsigned char*)data)[i], m.debug.output);
+		ft_puthex_char(stream[i], m.debug.output);
 		ft_putstr_fd(" ", m.debug.output);
-		if (((unsigned char*)data)[i] >= ' ' && ((unsigned char*)data)[i] <= '~') {
-			ascii[i % 8] = ((unsigned char*)data)[i];
+		if (stream[i] >= ' ' && stream[i] <= '~') {
+			ascii[i % 8] = stream[i];
 		} else {
 			ascii[i % 8] = '.';
 		}

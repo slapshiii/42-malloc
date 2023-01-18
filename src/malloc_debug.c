@@ -115,3 +115,11 @@ void	report_allocations(void) {
 	report_allocation(m.lst_page_m);
 	report_allocation(m.lst_page_l);
 }
+
+void	fill_pattern(void *addr, char *pattern, size_t size) {
+	char *ptr = (char *)addr;
+	size_t len_pattern = ft_strlen(pattern);
+	for (size_t i = 0; i < size; ++i) {
+		ptr[i] = pattern[i % len_pattern];
+	}
+}

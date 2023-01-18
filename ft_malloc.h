@@ -70,6 +70,7 @@ void	free(void *ptr);
 void	*malloc(size_t size);
 void	*realloc(void *ptr, size_t size);
 void	show_alloc_mem();
+void    show_alloc_mem_hex(void *ptr);
 
 void	*allocate(void** l, void **fl, size_t s);
 void	*allocate_large(void** l, size_t s);
@@ -101,5 +102,6 @@ void	pattern_free_option(const char *option);
 void	report_allocations(void);
 void	abort_validate_ptr(int status, void *ptr);
 int		validate_ptr(void *root, void *ptr);
+void	fill_pattern(void *addr, char *pattern, size_t size);
 
 #endif

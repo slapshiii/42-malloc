@@ -15,17 +15,23 @@ static void initialize_malloc() {
 	char * pagesize_str = getenv("PAGESIZE");
 	m.pagesize = (pagesize_str == NULL) ?
 		(size_t)getpagesize() : (size_t)ft_atoi(pagesize_str);
-	char * malloctype = getenv("MALLOCTYPE");
-	if (malloctype && ft_strcmp(malloctype, "debug") == 0) {
+	char * mallocdebug = getenv("MALLOCDEBUG");
+	if (mallocdebug) {
 		m.debug.b_debug = 1;
-		char * mallocdebug = getenv("MALLOCDEBUG");
-		redirect_output(mallocdebug);
-	}
+		report_allocations_option(mallocdebug);
+		validate_ptrs_option(mallocdebug);
+		output_option(mallocdebug);
+		pattern_alloc_option(mallocdebug);
+		pattern_free_option(mallocdebug);
+	} else
+		m.debug.b_debug = 0;
 }
 
 __attribute__((destructor))
 static void destroy_malloc() {
 	if (m.debug.b_debug) {
+		if (m.debug.report_allocations)
+			report_allocations();
 		if (m.debug.output > 2)
 			close(m.debug.output);
 	}
@@ -35,12 +41,18 @@ void    free(void *ptr) {
 	pthread_mutex_lock(&mutex_malloc);
 	size_t size = GETSIZE(ptr - SIZE);
 	if (size < m.pagesize/4) {
+		if (m.debug.validate_ptrs && validate_ptr(m.lst_page_s, ptr - SIZE) != 1)
+			abort_validate_ptr(0, ptr);
 		desallocate(ptr - SIZE, &m.lst_free_s, size);
 	}
 	else if (size < m.pagesize) {
+		if (m.debug.validate_ptrs && validate_ptr(m.lst_page_m, ptr - SIZE) != 1)
+			abort_validate_ptr(0, ptr);
 		desallocate(ptr - SIZE, &m.lst_free_m, size);
 	}
 	else {
+		if (m.debug.validate_ptrs && validate_ptr(m.lst_page_l, ptr - SIZE) != 1)
+			abort_validate_ptr(0, ptr);
 		desallocate_large(ptr - SIZE, size);
 	}
 	pthread_mutex_unlock(&mutex_malloc);
@@ -65,12 +77,21 @@ void    *malloc(size_t size) {
 
 void    *realloc(void *ptr, size_t size) {
 	pthread_mutex_lock(&mutex_malloc);
+	if (m.debug.validate_ptrs && (
+		validate_ptr(m.lst_page_s, ptr - SIZE) != 1 &&
+		validate_ptr(m.lst_page_m, ptr - SIZE) != 1 &&
+		validate_ptr(m.lst_page_l, ptr - SIZE) != 1
+	))
+		abort_validate_ptr(1, ptr);
 	if (try_extend_chunk(ptr, size)) {
+		pthread_mutex_unlock(&mutex_malloc);
 		void *res = malloc(size);
+		pthread_mutex_lock(&mutex_malloc);
 		if (res != NULL) {
-			size = (GETSIZE(ptr - SIZE) < size) ? GETSIZE(ptr - SIZE) : size;
-			ft_memmove(res, ptr, size);
+			ft_memmove(res, ptr, GETSIZE(ptr - SIZE));
+			pthread_mutex_unlock(&mutex_malloc);
 			free(ptr);
+			pthread_mutex_lock(&mutex_malloc);
 		}
 		ptr = res;
 	}

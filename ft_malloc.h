@@ -2,12 +2,18 @@
 #ifndef FT_MALLOC_H
 #define FT_MALLOC_H
 
+#define _GNU_SOURCE 1	//to grab REG_RIP (debug)
+
 #include <sys/mman.h>
 //#include <stdio.h>
 #include <unistd.h>
 #include <pthread.h>
 #include <stdlib.h>
 #include <libft.h>
+
+//DEBUG
+#include <fcntl.h>
+#include <signal.h>
 
 #if defined(__x86_64__)
 /* 64 bit detected */
@@ -20,6 +26,7 @@
 	#define MINSIZE 16UL
 	#define SIZE 8UL
 	#define MALLOC_ALIGNMENT 8UL
+	#define REG_RIP REG_EIP 
 #endif
 
 #define ISALLOC(a) (*(size_t*)(a) & 0b001)
@@ -37,7 +44,6 @@ typedef struct	debug_malloc_s {
 	int		report_allocations;
 	int		validate_ptrs;
 	int		output;
-	int		b_continue;
 	char	pattern_alloc[128];
 	char	pattern_free[128];
 }				debug_malloc_t;
@@ -86,7 +92,14 @@ void	ft_putptr_fd(void *p, int fd);
 void	ft_puthex_char(unsigned char c, int fd);
 
 // DEBUG
-#include <fcntl.h>
-void	redirect_output(const char *option);
+void	report_allocations_option(const char *option);
+void	validate_ptrs_option(const char *option);
+void	output_option(const char *option);
+void	pattern_alloc_option(const char *option);
+void	pattern_free_option(const char *option);
+
+void	report_allocations(void);
+void	abort_validate_ptr(int status, void *ptr);
+int		validate_ptr(void *root, void *ptr);
 
 #endif

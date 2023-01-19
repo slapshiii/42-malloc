@@ -52,12 +52,13 @@ void	*format_chunk_a(void *addr, void **fl, size_t s) {
 	if (remaining >= (int)(2 * SIZE)) {
 		set_value(res + size_allocated + SIZE, remaining);
 		set_value(addr + size_free + SIZE, remaining);
+		set_value(res + size_allocated + SIZE + FDPTR, next_free);
+		set_value(res + size_allocated + SIZE + BKPTR, prev_free);
 	}
 	if (*fl == addr)
 		*fl = (remaining >= (int)(2 * SIZE)) ? res + size_allocated + SIZE : (void*)next_free;
 	if (ft_strlen(m.debug.pattern_alloc))
-		fill_pattern(res, m.debug.pattern_alloc, size_allocated);
-	// hexdump(addr, GETSIZE(addr) + 2 * SIZE);
+		fill_pattern(addr + SIZE, m.debug.pattern_alloc, GETSIZE(addr));
 	return (res);
 }
 
@@ -83,38 +84,34 @@ void	*format_chunk_f(void *addr, void **fl, size_t s) {
 	}
 	set_value(addr, s);
 	set_value(addr + s + SIZE, s);
-	// if (ft_strlen(m.debug.pattern_free))
-	// 	fill_pattern(addr + BKPTR + SIZE, m.debug.pattern_free, GETSIZE(addr) /2);
+
+	if (ft_strlen(m.debug.pattern_free))
+		fill_pattern(addr + 3 * SIZE, m.debug.pattern_free, GETSIZE(addr) - 2 * SIZE);
 	return (addr);
 }
 
 void	*free_merge_contiguous(void *ptr) {
 	void* next_chunk_ptr = (ptr + GETSIZE(ptr) + 2 * SIZE);
-	// if (get_value(ptr + FDPTR) == (size_t)next_chunk_ptr)
 	if (!ISALLOC(next_chunk_ptr))
 	{
 		void *ptr_footer = ptr + GETSIZE(ptr) + GETSIZE(next_chunk_ptr) + 3 * SIZE;
 		set_value(ptr			, GETSIZE(ptr) + GETSIZE(next_chunk_ptr) + 2 * SIZE);
 		set_value(ptr_footer	, GETSIZE(ptr));
 		set_value(ptr + FDPTR	, get_value(next_chunk_ptr + FDPTR));
-		for (size_t i = 0; i < SIZE * 4; i += SIZE)
-			set_value(next_chunk_ptr - SIZE + i, 0);
+		set_value(ptr + BKPTR	, get_value(next_chunk_ptr + BKPTR));
+		if (ft_strlen(m.debug.pattern_free))
+			fill_pattern(next_chunk_ptr - SIZE, m.debug.pattern_free, SIZE * 4);
 	}
-	if ((size_t)ptr & (0x0FFF)) {
-		void *prev_chunk_footer = (ptr - GETSIZE(ptr - 2 * SIZE) - 1 * SIZE);
+	void *prev_chunk_footer = (ptr - SIZE);
+	if ((size_t)ptr & (0x0FFF) && !ISALLOC(prev_chunk_footer)) 
+	{
 		void *prev_chunk_ptr = prev_chunk_footer - GETSIZE(prev_chunk_footer) - SIZE;
-		// if (get_value(ptr + BKPTR) == (size_t)prev_chunk_ptr)
-		if (!ISALLOC(prev_chunk_ptr))
-		{
-			prev_chunk_footer = ptr + GETSIZE(ptr) + SIZE;
-			set_value(prev_chunk_ptr			, GETSIZE(ptr) + GETSIZE(prev_chunk_ptr) + 2 * SIZE);
-			set_value(prev_chunk_footer			, GETSIZE(prev_chunk_ptr));
-			set_value(prev_chunk_ptr + FDPTR	, get_value(ptr + FDPTR));
-
-			for (size_t i = 0; i < SIZE * 4; i += SIZE)
-				set_value(ptr - SIZE + i, 0);
-			return (prev_chunk_ptr);
-		}
+		set_value(prev_chunk_ptr			, GETSIZE(ptr) + GETSIZE(prev_chunk_ptr) + 2 * SIZE);
+		set_value(prev_chunk_footer			, GETSIZE(prev_chunk_ptr));
+		set_value(prev_chunk_ptr + FDPTR	, get_value(ptr + FDPTR));
+		if (ft_strlen(m.debug.pattern_free))
+			fill_pattern(ptr - SIZE, m.debug.pattern_free, SIZE * 4);
+		return (prev_chunk_ptr);
 	}
 	return (ptr);
 }

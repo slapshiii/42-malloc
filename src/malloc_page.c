@@ -15,21 +15,22 @@
  *             +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
  */
 static void    *create_new_page() {
-	int pagesize = m.pagesize;
 	void *new_page = mmap(
 		NULL,
-		pagesize,
+		m.pagesize,
 		PROT_READ|PROT_WRITE, 
 		MAP_SHARED|MAP_ANONYMOUS|MAP_POPULATE,
 		-1, 0
 	);
 	if (new_page == MAP_FAILED)
 		return (NULL);
-	size_t usable_size = pagesize - 4 * SIZE;
+	size_t usable_size = m.pagesize - 4 * SIZE;
 	set_value(new_page							, usable_size);	// chunk header
 	set_value(new_page + usable_size + SIZE		, usable_size);	// chunk footer
 	set_value(new_page + usable_size + SIZE * 2	, 0b01);		// mark page end
 	set_value(new_page + usable_size + SIZE * 3	, 0);			// nxt page ptr
+	if (ft_strlen(m.debug.pattern_free))
+		fill_pattern(new_page + 3 * SIZE, m.debug.pattern_free, usable_size - 2 * SIZE);
 	return new_page;
 }
 
@@ -93,7 +94,7 @@ void    *allocate_large(void** l, size_t s) {
 		NULL,
 		size_allocated,
 		PROT_READ|PROT_WRITE, 
-		MAP_SHARED|MAP_ANONYMOUS,
+		MAP_SHARED|MAP_ANONYMOUS|MAP_POPULATE,
 		-1, 0
 	);
 	if (new_page == MAP_FAILED)
@@ -107,6 +108,8 @@ void    *allocate_large(void** l, size_t s) {
 	if (*l != NULL)
 		set_value(*l + GETSIZE(*l) + SIZE * 4, (size_t)new_page);
 	*l = new_page;
+	if (ft_strlen(m.debug.pattern_free))
+		fill_pattern(new_page + SIZE, m.debug.pattern_free, usable_size);
 	return new_page + SIZE;
 }
 
@@ -125,12 +128,12 @@ void	desallocate(void *ptr, void **fl, size_t size) {
 				cur = (void *)get_value(cur + m.pagesize - SIZE);
 			set_value(cur + m.pagesize - SIZE, get_value(res + m.pagesize - SIZE));
 		}
-
 		if (*fl == res)
 			*fl = (void *)get_value(res + FDPTR);
-		if (get_value(res + FDPTR) != 0)
+
+		if ((void *)get_value(res + FDPTR) != NULL)
 			set_value((void *)get_value(res + FDPTR) + BKPTR, get_value(res + BKPTR));
-		if (get_value(res + BKPTR) != 0)
+		if ((void *)get_value(res + BKPTR) != NULL)
 			set_value((void *)get_value(res + BKPTR) + FDPTR, get_value(res + FDPTR));
 		munmap(res, m.pagesize);
 	}

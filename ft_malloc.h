@@ -8,7 +8,7 @@
 //#include <stdio.h>
 #include <unistd.h>
 #include <pthread.h>
-#include <stdlib.h>
+//#include <stdlib.h>
 #include <libft.h>
 
 //DEBUG

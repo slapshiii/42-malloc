@@ -48,9 +48,9 @@ void	pattern_alloc_option(const char *option) {
 }
 
 void	pattern_free_option(const char *option) {
-	char *start = ft_strnstr(option, "free_fill:", ft_strlen(option));
+	char *start = ft_strnstr(option, "fill_free:", ft_strlen(option));
 	if (start != NULL) {
-		start += ft_strlen("free_fill:");
+		start += ft_strlen("fill_free:");
 		char *end = ft_strchr(start, ',');
 		if (end == NULL)
 			end = start + ft_strlen(start);
@@ -88,7 +88,7 @@ int			validate_ptr(void *root, void *ptr) {
 		if (get_value(root) == 0b01)
 			root = (void *)get_value(root + FDPTR);
     }
-	return (0);
+	return (-1);
 }
 
 static void	report_allocation(void *root) {

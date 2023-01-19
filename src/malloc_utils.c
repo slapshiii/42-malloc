@@ -63,7 +63,7 @@ size_t	print_bucket(void *root) {
     {
 		ft_putptr_fd(root, m.debug.output);
 		ft_putstr_fd(" - ", m.debug.output);
-		ft_putptr_fd(root + GETSIZE(root), m.debug.output);
+		ft_putptr_fd(root + GETSIZE(root) + SIZE, m.debug.output);
 		ft_putstr_fd(" | ", m.debug.output);
 		ft_putnbr_fd((int)GETSIZE(root), m.debug.output);
 		ft_putstr_fd(" bytes", m.debug.output);

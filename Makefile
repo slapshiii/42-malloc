@@ -25,7 +25,6 @@ OBJS = 	$(addprefix $(OBJDIR)/, $(notdir $(SRCS:%.c=%.o)))
 
 CFLAGS += -Wall -Werror -Wextra -g3
 CFLAGS += -fPIC
-# CFLAGS += fsanitize=address
 
 #CC=LD_LIBRARY_PATH=$(PWD) gcc
 CC=gcc
@@ -44,7 +43,7 @@ libft.a:
 	$(MAKE) -C $(LIBFTDIR)/ all
 
 test: ${NAME}
-	${CC} $(INC_DIRS) -o a.out main.c -L. -lft_malloc $(LIB_DIRS) $(LIBS)
+	${CC} $(INC_DIRS) -g3 -o a.out main.c -L. -lft_malloc $(LIB_DIRS) $(LIBS)
 	@-./a.out > test.txt
 
 clean:

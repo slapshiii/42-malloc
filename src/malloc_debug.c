@@ -11,9 +11,9 @@ void	report_allocations_option(const char *option) {
 void	validate_ptrs_option(const char *option) {
 	char *start = ft_strnstr(option, "validate_ptrs", ft_strlen(option));
 	if (start != NULL) {
-		m.debug.validate_ptrs = 1;
+		m.debug.validate_ptrs = E_ON;
 	} else
-		m.debug.validate_ptrs = 0;
+		m.debug.validate_ptrs = E_OFF;
 }
 
 void	output_option(const char *option) {
@@ -59,14 +59,14 @@ void	pattern_free_option(const char *option) {
 		bzero(m.debug.pattern_free, 128);
 }
 
-void		abort_validate_ptr(int status, void *ptr) {
+void		abort_validate_ptr(void *ptr) {
 	ft_putptr_fd(ptr - SIZE, m.debug.output);
-	switch (status)
+	switch (m.debug.validate_ptrs)
 	{
-	case 0:
+	case E_FREED:
 		ft_putstr_fd(" - is already freed. Aborting\n", m.debug.output);
 		break;
-	case 1:
+	case E_ALLOCATED:
 		ft_putstr_fd(" - is not allocated. Aborting\n", m.debug.output);
 		break;
 	default:
@@ -77,18 +77,18 @@ void		abort_validate_ptr(int status, void *ptr) {
 }
 
 int			validate_ptr(void *root, void *ptr) {
-	while (root != NULL && GETSIZE(root) != 0)
-    {
-        if (ptr == root && ISALLOC(root)) {
-			return (1);
-        } else if (ptr == root && !ISALLOC(root)) {
-			return (0);
+	while (root != NULL)
+	{
+		if (ptr == root && ISALLOC(root)) {
+			return (m.debug.validate_ptrs = E_ALLOCATED);
+		} else if (ptr == root && !ISALLOC(root)) {
+			return (m.debug.validate_ptrs = E_FREED);
 		}
-        root=(size_t*)(root + GETSIZE(root) + 2 * SIZE);
+		root=(size_t*)(root + GETSIZE(root) + 2 * SIZE);
 		if (get_value(root) == 0b01)
 			root = (void *)get_value(root + FDPTR);
-    }
-	return (-1);
+	}
+	return (m.debug.validate_ptrs = E_INVALID);
 }
 
 static void	report_allocation(void *root) {

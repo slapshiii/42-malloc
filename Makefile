@@ -2,7 +2,6 @@ ifeq ($(HOSTTYPE),)
 	HOSTTYPE := $(shell uname -m)_$(shell uname -s)
 endif
 
-export LD_LIBRARY_PATH := $(PWD)/:$(LD_LIBRARY_PATH)
 NAME :=	libft_malloc_$(HOSTTYPE).so
 SRCDIR := src
 OBJDIR := obj
@@ -20,13 +19,14 @@ C_FILE =	malloc.c \
 			malloc_debug.c \
 			printer.c
 
+INCS := ft_malloc.h libft/libft.h
+
 SRCS =	$(addprefix $(SRCDIR)/, $(C_FILE))
-OBJS = 	$(addprefix $(OBJDIR)/, $(notdir $(SRCS:%.c=%.o)))
+OBJS = 	$(addprefix $(OBJDIR)/, $(C_FILE:%.c=%.o))
 
 CFLAGS += -Wall -Werror -Wextra -g3
 CFLAGS += -fPIC
 
-#CC=LD_LIBRARY_PATH=$(PWD) gcc
 CC=gcc
 
 all:	${NAME}
@@ -44,7 +44,7 @@ libft.a:
 
 test: ${NAME}
 	${CC} $(INC_DIRS) -g3 -o a.out main.c -L. -lft_malloc $(LIB_DIRS) $(LIBS)
-	@-./a.out > test.txt
+	@-./run.sh time -v ./a.out
 
 clean:
 	-rm -rf ${OBJDIR}

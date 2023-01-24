@@ -24,7 +24,7 @@ static void    *create_new_page() {
 	);
 	if (new_page == MAP_FAILED)
 		return (NULL);
-	size_t usable_size = m.pagesize - 4 * SIZE;
+	size_t usable_size = MAXSIZE;
 	set_value(new_page							, usable_size);	// chunk header
 	set_value(new_page + usable_size + SIZE		, usable_size);	// chunk footer
 	set_value(new_page + usable_size + SIZE * 2	, 0b01);		// mark page end
@@ -52,6 +52,8 @@ void    *allocate(void **l, void **fl, size_t s) {
 	cur = get_first_fit(*fl, s);
 	if (cur == NULL) {
 		cur = create_new_page();
+		if (cur == NULL)
+			return (NULL);
 		if (*l == NULL) {
 			*l = cur;
 			*fl = cur;
@@ -108,8 +110,8 @@ void    *allocate_large(void** l, size_t s) {
 	if (*l != NULL)
 		set_value(*l + GETSIZE(*l) + SIZE * 4, (size_t)new_page);
 	*l = new_page;
-	if (ft_strlen(m.debug.pattern_free))
-		fill_pattern(new_page + SIZE, m.debug.pattern_free, usable_size);
+	if (ft_strlen(m.debug.pattern_alloc))
+		fill_pattern(new_page + SIZE, m.debug.pattern_alloc, usable_size);
 	return new_page + SIZE;
 }
 
@@ -118,7 +120,7 @@ void	desallocate(void *ptr, void **fl, size_t size) {
 	void **listpage;
 	format_chunk_f(ptr, fl, size);
 	res = free_merge_contiguous(ptr);
-	if (GETSIZE(res) == m.pagesize - 4 * SIZE) {
+	if (GETSIZE(res) == MAXSIZE) {
 		listpage = (size < m.pagesize/4) ? &m.lst_page_s : &m.lst_page_m;
 		if (*listpage == res) {
 			*listpage = (void *)get_value(res + m.pagesize - SIZE);

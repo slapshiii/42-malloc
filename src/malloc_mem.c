@@ -26,37 +26,31 @@ void	*format_chunk_a(void *addr, void **fl, size_t s) {
 
 	void	*res = (void *)(addr + SIZE);
 	size_t	size_free = GETSIZE(addr);
-	size_t	size_allocated;
-	if (s < MINSIZE)
-		size_allocated = MINSIZE;
-	else if (s % SIZE)
-		size_allocated = (s + SIZE) & ~(SIZE - 1);
-	else
-		size_allocated = s;
-	int remaining = size_free - size_allocated - 2 * SIZE;
+
+	int remaining = size_free - s - 2 * SIZE;
 	if (remaining < (int)(2 * SIZE)) {
-		size_allocated = size_free;
+		s = size_free;
 	}
-	set_value(addr, size_allocated + 1);
-	set_value(res + size_allocated, size_allocated + 1);
+	set_value(addr, s + 1);
+	set_value(res + s, s + 1);
 	if ((void*)prev_free != NULL){
 		set_value((void*)(prev_free + FDPTR),
-			(remaining < (int)(4 * SIZE)) ? next_free : (size_t)res + size_allocated + SIZE
+			(remaining < (int)(4 * SIZE)) ? next_free : (size_t)res + s + SIZE
 		);
 	}
 	if ((void*)next_free != NULL) {
 		set_value((void*)(next_free + BKPTR),
-			(remaining < (int)(4 * SIZE)) ? prev_free : (size_t)res + size_allocated + SIZE
+			(remaining < (int)(4 * SIZE)) ? prev_free : (size_t)res + s + SIZE
 		);
 	}
 	if (remaining >= (int)(2 * SIZE)) {
-		set_value(res + size_allocated + SIZE, remaining);
+		set_value(res + s + SIZE, remaining);
 		set_value(addr + size_free + SIZE, remaining);
-		set_value(res + size_allocated + SIZE + FDPTR, next_free);
-		set_value(res + size_allocated + SIZE + BKPTR, prev_free);
+		set_value(res + s + SIZE + FDPTR, next_free);
+		set_value(res + s + SIZE + BKPTR, prev_free);
 	}
 	if (*fl == addr)
-		*fl = (remaining >= (int)(2 * SIZE)) ? res + size_allocated + SIZE : (void*)next_free;
+		*fl = (remaining >= (int)(2 * SIZE)) ? res + s + SIZE : (void*)next_free;
 	if (ft_strlen(m.debug.pattern_alloc))
 		fill_pattern(addr + SIZE, m.debug.pattern_alloc, GETSIZE(addr));
 	return (res);

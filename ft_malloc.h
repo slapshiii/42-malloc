@@ -17,16 +17,17 @@
 
 #if defined(__x86_64__)
 /* 64 bit detected */
-	#define MINSIZE 16UL
 	#define SIZE 8UL
 	#define MALLOC_ALIGNMENT 8UL
+	#define MINSIZE 16UL
+	#define MAXSIZE (m.pagesize - 4 * SIZE)
 #endif
 #if defined(__i386__)
 /* 32 bit x86 detected */
-	#define MINSIZE 16UL
 	#define SIZE 8UL
 	#define MALLOC_ALIGNMENT 8UL
-	#define REG_RIP REG_EIP 
+	#define MINSIZE 16UL
+	#define MAXSIZE (m.pagesize - 4 * SIZE)
 #endif
 
 #define ISALLOC(a) (*(size_t*)(a) & 0b001)
@@ -38,14 +39,17 @@
 #define BKPTR (2 * SIZE)
 #define FDPTR (SIZE)
 
+typedef enum	valid_ptrs_val {
+	E_OFF = -1, E_ON, E_ALLOCATED, E_FREED, E_INVALID
+}				ptrs_val_t;
 
 typedef struct	debug_malloc_s {
-	int		b_debug;
-	int		report_allocations;
-	int		validate_ptrs;
-	int		output;
-	char	pattern_alloc[128];
-	char	pattern_free[128];
+	int				b_debug;
+	int				report_allocations;
+	ptrs_val_t		validate_ptrs;
+	int				output;
+	char			pattern_alloc[128];
+	char			pattern_free[128];
 }				debug_malloc_t;
 
 /**
@@ -100,7 +104,7 @@ void	pattern_alloc_option(const char *option);
 void	pattern_free_option(const char *option);
 
 void	report_allocations(void);
-void	abort_validate_ptr(int status, void *ptr);
+void	abort_validate_ptr(void *ptr);
 int		validate_ptr(void *root, void *ptr);
 void	fill_pattern(void *addr, char *pattern, size_t size);
 

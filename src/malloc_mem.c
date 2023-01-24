@@ -6,20 +6,16 @@
  *             +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
  *     `head:' |             Size of chunk, in bytes                     |A|0|P|
  *       mem-> +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- *             |             Forward pointer to next chunk in freelist         |
- *             +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- *             |             Back pointer to previous chunk in freelist        |
- *             +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- *             |             Unused space (may be 0 bytes long)                .
+ *             |             Allocated space                                   |
+ *             |             (at least 16 bytes long)                          |
  *             .                                                               .
- *             .                                                               |
+ *             .                                                               .
  *             +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
  *     `foot:' |             Size of chunk, in bytes                           |
  * nextchunk-> +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
  *             |             Size of next chunk, in bytes                |A|0|0|
  *             +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
  */
-
 void	*format_chunk_a(void *addr, void **fl, size_t s) {
 	size_t	prev_free = get_value(addr + BKPTR);
 	size_t	next_free = get_value(addr + FDPTR);
@@ -56,6 +52,25 @@ void	*format_chunk_a(void *addr, void **fl, size_t s) {
 	return (res);
 }
 
+/**
+ *     chunk-> +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *             |             Size of previous chunk, if unallocated (P clear)  |
+ *             +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *     `head:' |             Size of chunk, in bytes                     |A|0|P|
+ *       mem-> +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *             |             Forward pointer to next chunk in freelist         |
+ *             +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *             |             Back pointer to previous chunk in freelist        |
+ *             +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *             |             Unused space (may be 0 bytes long)                .
+ *             .                                                               .
+ *             .                                                               |
+ *             +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *     `foot:' |             Size of chunk, in bytes                           |
+ * nextchunk-> +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *             |             Size of next chunk, in bytes                |A|0|0|
+ *             +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ */
 void	*format_chunk_f(void *addr, void **fl, size_t s) {
 	void* next_f = *fl;
 	void* prev_f = NULL;
@@ -84,6 +99,33 @@ void	*format_chunk_f(void *addr, void **fl, size_t s) {
 	return (addr);
 }
 
+/**
+ *    prev_chunk_ptr-> +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *                     |             Size of prev_chunk, in bytes                |A|0|p|
+ *                     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *                     |             Forward pointer to next chunk in freelist         |
+ *                     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *                     |             Back pointer to previous chunk in freelist        |
+ * prev_chunk_footer-> +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *                     |             Size of prev_chunk, if unallocated (p clear)|A|0|p|
+ *               ptr-> +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *                     |             Size of chunk, in bytes                     |A|0|P|
+ *                     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *                     |             Forward pointer to next chunk in freelist         |
+ *                     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *                     |             Back pointer to previous chunk in freelist        |
+ *                     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *                     |             Size of chunk, in bytes                           |
+ *    next_chunk_ptr-> +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *                     |             Size of next_chunk, in bytes                |A|0|n|
+ *                     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *                     |             Forward pointer to next chunk in freelist         |
+ *                     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *                     |             Back pointer to previous chunk in freelist        |
+ *        ptr_footer-> +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *                     |             Size of next_chunk, if unallocated (n clear)|A|0|n|
+ *                     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ */
 void	*free_merge_contiguous(void *ptr) {
 	void* next_chunk_ptr = (ptr + GETSIZE(ptr) + 2 * SIZE);
 	if (!ISALLOC(next_chunk_ptr))

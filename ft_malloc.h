@@ -8,12 +8,19 @@
 //#include <stdio.h>
 #include <unistd.h>
 #include <pthread.h>
-//#include <stdlib.h>
 #include <libft.h>
 
 //DEBUG
 #include <fcntl.h>
 #include <signal.h>
+
+/**											Zonesize minimum
+ *  small: < pagesize/8 					---> 0xD000			0x10000 (128 * pagesize/8)
+ *  medium: >= pagesize/8 && < pagesize		---> 0x64000		0x80000 (128 * pagesize)
+ *  large: > pagesize
+ */
+#define SMALLZONE 0xD000
+#define MEDIUMZONE 0x64000
 
 #if defined(__x86_64__)
 /* 64 bit detected */
@@ -52,11 +59,6 @@ typedef struct	debug_malloc_s {
 	char			pattern_free[128];
 }				debug_malloc_t;
 
-/**
- *  small: < pagesize/4
- *  medium: >= pagesize/4 && < pagesize
- *  large: > pagesize
- */
 typedef struct	malloc_s {
 	void*			lst_page_s;
 	void*			lst_page_m;
@@ -90,6 +92,7 @@ size_t	get_value(void *addr);
 
 void	*get_first_fit(void* l, size_t s);
 void	*get_last_free(void** l);
+size_t	get_max_zone(size_t size);
 size_t	print_bucket(void *root);
 void	hexdump(const void* data, size_t size);
 

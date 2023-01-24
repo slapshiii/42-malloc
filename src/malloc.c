@@ -40,6 +40,14 @@ static void destroy_malloc() {
 
 void    free(void *ptr) {
 	pthread_mutex_lock(&mutex_malloc);
+	if (m.debug.validate_ptrs == E_OFF &&
+		validate_ptr(m.lst_page_s, ptr - SIZE) != E_ALLOCATED &&
+		validate_ptr(m.lst_page_m, ptr - SIZE) != E_ALLOCATED &&
+		validate_ptr(m.lst_page_l, ptr - SIZE) != E_ALLOCATED) {
+		m.debug.validate_ptrs = E_OFF;
+		pthread_mutex_unlock(&mutex_malloc);	
+		return;
+	}
 	size_t size = GETSIZE(ptr - SIZE);
 	if (size < m.pagesize/4) {
 		if (
@@ -96,6 +104,14 @@ void    *realloc(void *ptr, size_t size) {
 		validate_ptr(m.lst_page_l, ptr - SIZE) != E_ALLOCATED
 	))
 		abort_validate_ptr(ptr);
+	if (m.debug.validate_ptrs == E_OFF &&
+		validate_ptr(m.lst_page_s, ptr - SIZE) != E_ALLOCATED &&
+		validate_ptr(m.lst_page_m, ptr - SIZE) != E_ALLOCATED &&
+		validate_ptr(m.lst_page_l, ptr - SIZE) != E_ALLOCATED) {
+		m.debug.validate_ptrs = E_OFF;
+		pthread_mutex_unlock(&mutex_malloc);	
+		return (NULL);
+	}
 	if (try_extend_chunk(ptr, size)) {
 		pthread_mutex_unlock(&mutex_malloc);
 		void *res = malloc(size);

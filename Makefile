@@ -44,7 +44,7 @@ libft.a:
 
 test: ${NAME}
 	${CC} $(INC_DIRS) -g3 -o a.out main.c -L. -lft_malloc $(LIB_DIRS) $(LIBS)
-	@-./run.sh time -v ./a.out
+	@-./run.sh /usr/bin/time -v ./a.out
 
 clean:
 	-rm -rf ${OBJDIR}

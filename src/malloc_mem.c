@@ -130,11 +130,11 @@ int		try_extend_chunk(void *ptr, size_t size) {
 		size = (size + SIZE) & ~(SIZE - 1);
 	if (oldsize == size)
 		return (0);
-	if (size < m.pagesize/4 && oldsize < m.pagesize/4) {
+	if (size < m.pagesize/8 && oldsize < m.pagesize/8) {
 		fl = &m.lst_free_s;
 		f_bucket = 0;
 	}
-	else if (size >= m.pagesize/4 && size < m.pagesize && oldsize < m.pagesize) {
+	else if (size >= m.pagesize/8 && size < m.pagesize && oldsize < m.pagesize) {
 		fl = &m.lst_free_m;
         f_bucket = 0;
 	}

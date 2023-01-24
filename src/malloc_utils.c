@@ -16,6 +16,12 @@ void    *get_last_free(void** l) {
 	return (c);
 }
 
+size_t	get_max_zone(size_t size) {
+	if (size < m.pagesize/8)
+		return (SMALLZONE);
+	return (MEDIUMZONE);
+}
+
 void hexdump(const void* data, size_t size) {
 	if (data == NULL || size == 0)
 		return;

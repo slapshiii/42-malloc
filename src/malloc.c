@@ -40,6 +40,12 @@ static void destroy_malloc() {
 
 void    free(void *ptr) {
 	pthread_mutex_lock(&mutex_malloc);
+	if (m.debug.validate_ptrs != E_OFF && (
+		validate_ptr(m.lst_page_s, ptr - SIZE) != E_ALLOCATED &&
+		validate_ptr(m.lst_page_m, ptr - SIZE) != E_ALLOCATED &&
+		validate_ptr(m.lst_page_l, ptr - SIZE) != E_ALLOCATED
+	))
+		abort_validate_ptr(ptr);
 	if (m.debug.validate_ptrs == E_OFF &&
 		validate_ptr(m.lst_page_s, ptr - SIZE) != E_ALLOCATED &&
 		validate_ptr(m.lst_page_m, ptr - SIZE) != E_ALLOCATED &&

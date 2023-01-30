@@ -30,7 +30,7 @@ void	output_option(const char *option) {
 		else if (ft_strcmp(buf, "stdout") == 0)
 			m.debug.output = 1;
 		else
-			m.debug.output = open(buf, O_CREAT|O_WRONLY|O_TRUNC, 700);
+			m.debug.output = open(buf, O_CREAT|O_WRONLY|O_TRUNC, S_IRWXU|S_IROTH);
 	} else
 		m.debug.output = 2;
 }

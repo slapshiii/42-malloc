@@ -24,8 +24,10 @@ static void initialize_malloc() {
 		output_option(mallocdebug);
 		pattern_alloc_option(mallocdebug);
 		pattern_free_option(mallocdebug);
-	} else
+	} else {
 		m.debug.b_debug = 0;
+		m.debug.validate_ptrs = E_OFF;
+	}
 }
 
 __attribute__((destructor))
@@ -40,43 +42,21 @@ static void destroy_malloc() {
 
 void    free(void *ptr) {
 	pthread_mutex_lock(&mutex_malloc);
-	if (m.debug.validate_ptrs != E_OFF && (
-		validate_ptr(m.lst_page_s, ptr - SIZE) != E_ALLOCATED &&
-		validate_ptr(m.lst_page_m, ptr - SIZE) != E_ALLOCATED &&
-		validate_ptr(m.lst_page_l, ptr - SIZE) != E_ALLOCATED
-	))
-		abort_validate_ptr(ptr);
-	if (m.debug.validate_ptrs == E_OFF &&
-		validate_ptr(m.lst_page_s, ptr - SIZE) != E_ALLOCATED &&
-		validate_ptr(m.lst_page_m, ptr - SIZE) != E_ALLOCATED &&
-		validate_ptr(m.lst_page_l, ptr - SIZE) != E_ALLOCATED) {
-		m.debug.validate_ptrs = E_OFF;
-		pthread_mutex_unlock(&mutex_malloc);	
-		return;
+	if (validate_ptr(ptr - SIZE) == 0) {
+		if (m.debug.validate_ptrs == E_OFF) {
+			pthread_mutex_unlock(&mutex_malloc);
+			return;
+		} else
+			abort_validate_ptr(ptr);
 	}
 	size_t size = GETSIZE(ptr - SIZE);
-	if (size < m.pagesize/4) {
-		if (
-		m.debug.validate_ptrs != E_OFF
-		&& validate_ptr(m.lst_page_s, ptr - SIZE) != E_ALLOCATED
-		)
-			abort_validate_ptr(ptr);
+	if (size < TINYMAXSIZE) {
 		desallocate(ptr - SIZE, &m.lst_free_s, size);
 	}
 	else if (size <= MAXSIZE) {
-		if (
-		m.debug.validate_ptrs != E_OFF
-		&& validate_ptr(m.lst_page_m, ptr - SIZE) != E_ALLOCATED
-		)
-			abort_validate_ptr(ptr);
 		desallocate(ptr - SIZE, &m.lst_free_m, size);
 	}
 	else {
-		if (
-		m.debug.validate_ptrs != E_OFF
-		&& validate_ptr(m.lst_page_l, ptr - SIZE) != E_ALLOCATED
-		)
-			abort_validate_ptr(ptr);
 		desallocate_large(ptr - SIZE, size);
 	}
 	pthread_mutex_unlock(&mutex_malloc);
@@ -89,7 +69,7 @@ void    *malloc(size_t size) {
 		size = MINSIZE;
 	else if (size % SIZE)
 		size = (size + SIZE) & ~(SIZE - 1);
-	if (size < m.pagesize/4) {
+	if (size < TINYMAXSIZE) {
 		res = allocate(&m.lst_page_s, &m.lst_free_s, size);
 	}
 	else if (size <= MAXSIZE) {
@@ -104,19 +84,12 @@ void    *malloc(size_t size) {
 
 void    *realloc(void *ptr, size_t size) {
 	pthread_mutex_lock(&mutex_malloc);
-	if (m.debug.validate_ptrs != E_OFF && (
-		validate_ptr(m.lst_page_s, ptr - SIZE) != E_ALLOCATED &&
-		validate_ptr(m.lst_page_m, ptr - SIZE) != E_ALLOCATED &&
-		validate_ptr(m.lst_page_l, ptr - SIZE) != E_ALLOCATED
-	))
-		abort_validate_ptr(ptr);
-	if (m.debug.validate_ptrs == E_OFF &&
-		validate_ptr(m.lst_page_s, ptr - SIZE) != E_ALLOCATED &&
-		validate_ptr(m.lst_page_m, ptr - SIZE) != E_ALLOCATED &&
-		validate_ptr(m.lst_page_l, ptr - SIZE) != E_ALLOCATED) {
-		m.debug.validate_ptrs = E_OFF;
-		pthread_mutex_unlock(&mutex_malloc);	
-		return (NULL);
+	if (validate_ptr(ptr - SIZE) == 0) {
+		if (m.debug.validate_ptrs == E_OFF) {
+			pthread_mutex_unlock(&mutex_malloc);
+			return (NULL);
+		} else
+			abort_validate_ptr(ptr);
 	}
 	if (try_extend_chunk(ptr, size)) {
 		pthread_mutex_unlock(&mutex_malloc);
@@ -156,13 +129,14 @@ void    show_alloc_mem() {
 }
 
 void    show_alloc_mem_hex(void *ptr) {
-	if (m.debug.validate_ptrs != E_OFF && (
-		validate_ptr(m.lst_page_s, ptr - SIZE) == E_INVALID &&
-		validate_ptr(m.lst_page_m, ptr - SIZE) == E_INVALID &&
-		validate_ptr(m.lst_page_l, ptr - SIZE) == E_INVALID
-	))
-		abort_validate_ptr(ptr);
 	pthread_mutex_lock(&mutex_malloc);
+	if (validate_ptr(ptr - SIZE) == 0) {
+		if (m.debug.validate_ptrs == E_OFF) {
+			pthread_mutex_unlock(&mutex_malloc);
+			return;
+		} else
+			abort_validate_ptr(ptr);
+	}
 	hexdump(ptr, GETSIZE(ptr - SIZE));
 	pthread_mutex_unlock(&mutex_malloc);
 }

@@ -124,7 +124,7 @@ void	desallocate(void *ptr, void **fl, size_t size) {
 	res = free_merge_contiguous(ptr);
 	size_t zone_size = get_max_zone(size);
 	if (GETSIZE(res) == zone_size - 4 * SIZE) {
-		listpage = (size < m.pagesize/8) ? &m.lst_page_s : &m.lst_page_m;
+		listpage = (size < TINYMAXSIZE) ? &m.lst_page_s : &m.lst_page_m;
 		if (*listpage == res) {
 			*listpage = (void *)get_value(res + zone_size - SIZE);
 		} else {

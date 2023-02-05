@@ -17,7 +17,7 @@ void    *get_last_free(void** l) {
 }
 
 size_t	get_max_zone(size_t size) {
-	if (size < m.pagesize/8)
+	if (size < TINYMAXSIZE)
 		return (SMALLZONE);
 	return (MEDIUMZONE);
 }

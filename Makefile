@@ -24,8 +24,7 @@ INCS := ft_malloc.h libft/libft.h
 SRCS =	$(addprefix $(SRCDIR)/, $(C_FILE))
 OBJS = 	$(addprefix $(OBJDIR)/, $(C_FILE:%.c=%.o))
 
-CFLAGS += -Wall -Werror -Wextra -g3
-CFLAGS += -fPIC
+CFLAGS += -Wall -Werror -Wextra
 
 CC=gcc
 
@@ -35,11 +34,11 @@ ${NAME}: ${OBJS}
 	${CC} ${CFLAGS} -shared -o ${NAME} -I./${LIBFTDIR} ${OBJS} $(LIB_DIRS) $(LIBS)
 	-ln -sf ${NAME} libft_malloc.so
 
-$(OBJDIR)/%.o:	$(SRCDIR)/%.c $(INCS) libft.a
+$(OBJDIR)/%.o:	$(SRCDIR)/%.c $(INCS) ${LIBFTDIR}/libft.a
 	@mkdir -p $(OBJDIR)
-	${CC} ${CFLAGS} $(INC_DIRS) -c $< -o $@ $(LIB_DIRS) $(LIBS)
+	${CC} ${CFLAGS} -fPIC $(INC_DIRS) -c $< -o $@ $(LIB_DIRS) $(LIBS)
 
-libft.a:
+${LIBFTDIR}/libft.a:
 	$(MAKE) -C $(LIBFTDIR)/ all
 
 test: ${NAME}

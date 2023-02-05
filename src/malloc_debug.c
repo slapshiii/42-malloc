@@ -76,19 +76,35 @@ void		abort_validate_ptr(void *ptr) {
 	abort();
 }
 
-int			validate_ptr(void *root, void *ptr) {
+static int	validate_ptr_list(void *root, void *ptr) {
 	while (root != NULL)
 	{
 		if (ptr == root && ISALLOC(root)) {
-			return (m.debug.validate_ptrs = E_ALLOCATED);
+			return (E_ALLOCATED);
 		} else if (ptr == root && !ISALLOC(root)) {
-			return (m.debug.validate_ptrs = E_FREED);
+			return (E_FREED);
 		}
 		root=(size_t*)(root + GETSIZE(root) + 2 * SIZE);
 		if (get_value(root) == 0b01)
 			root = (void *)get_value(root + FDPTR);
 	}
-	return (m.debug.validate_ptrs = E_INVALID);
+	return (E_INVALID);
+}
+
+int			validate_ptr(void *ptr) {
+	ptrs_val_t res[3];
+
+	res[0] = validate_ptr_list(m.lst_page_s, ptr);
+	res[1] = validate_ptr_list(m.lst_page_m, ptr);
+	res[2] = validate_ptr_list(m.lst_page_l, ptr);
+	if (res[0] == E_ALLOCATED || res[1] == E_ALLOCATED || res[2] == E_ALLOCATED) {
+		return (1);
+	}
+	else if (res[0] == E_FREED || res[1] == E_FREED || res[2] == E_FREED)
+		m.debug.validate_ptrs = (m.debug.validate_ptrs == E_OFF) ? E_OFF : E_FREED;
+	else
+		m.debug.validate_ptrs = (m.debug.validate_ptrs == E_OFF) ? E_OFF : E_INVALID;
+	return (0);
 }
 
 static void	report_allocation(void *root) {

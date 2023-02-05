@@ -2,8 +2,6 @@
 #ifndef FT_MALLOC_H
 	#define FT_MALLOC_H
 
-	#define _GNU_SOURCE 1	//to grab REG_RIP (debug)
-
 	#include <sys/mman.h>
 	//#include <stdio.h>
 	#include <unistd.h>
@@ -21,6 +19,7 @@
 	 */
 	#define SMALLZONE 0x11000
 	#define MEDIUMZONE 0x84000
+	#define TINYMAXSIZE m.pagesize/8
 
 	#if defined(__x86_64__)
 	/* 64 bit detected */
@@ -108,7 +107,7 @@
 
 	void	report_allocations(void);
 	void	abort_validate_ptr(void *ptr);
-	int		validate_ptr(void *root, void *ptr);
+	int		validate_ptr(void *ptr);
 	void	fill_pattern(void *addr, char *pattern, size_t size);
 
 #endif	//FT_MALLOC_H

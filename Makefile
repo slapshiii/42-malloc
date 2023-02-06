@@ -46,7 +46,7 @@ ${LIBFTDIR}/libft.a:
 	$(MAKE) -C $(LIBFTDIR)/ all
 
 test: ${NAME}
-	${CC} $(INC_DIRS) -g3 -o a.out main.c -L. -lft_malloc $(LIB_DIRS) $(LIBS)
+	${CC} $(INC_DIRS) -o a.out main.c -L. -lft_malloc $(LIB_DIRS) $(LIBS)
 	-/usr/bin/time -v ./run.sh ./a.out
 
 clean:

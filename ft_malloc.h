@@ -18,13 +18,13 @@
 	 *  large: > pagesize
 	 */
 	#define SMALLZONE 0x11000
-	#define MEDIUMZONE 0x84000
+	#define MEDIUMZONE 64*4096 //0x84000
 	#define TINYMAXSIZE m.pagesize/8
 
 	#if defined(__x86_64__)
 	/* 64 bit detected */
 		#define SIZE 8UL
-		#define MALLOC_ALIGNMENT 16UL
+		#define MALLOC_ALIGNMENT 8UL
 		#define MINSIZE 16UL
 		#define MAXSIZE (m.pagesize - 4 * SIZE)
 	#endif

@@ -13,10 +13,14 @@ LIBS = -lpthread -lft
 LIB_DIRS = -L./ -L./libft
 
 C_FILE =	malloc.c \
+			free.c \
+			realloc.c \
+			globals.c \
 			malloc_page.c \
 			malloc_mem.c \
 			malloc_utils.c \
 			malloc_debug.c \
+			bonus.c \
 			printer.c
 
 INCS := ft_malloc.h libft/libft.h

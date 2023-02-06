@@ -24,7 +24,7 @@
 	#if defined(__x86_64__)
 	/* 64 bit detected */
 		#define SIZE 8UL
-		#define MALLOC_ALIGNMENT 8UL
+		#define MALLOC_ALIGNMENT 16UL
 		#define MINSIZE 16UL
 		#define MAXSIZE (m.pagesize - 4 * SIZE)
 	#endif
@@ -75,7 +75,12 @@
 	void	*malloc(size_t size);
 	void	*realloc(void *ptr, size_t size);
 	void	show_alloc_mem();
+
 	void    show_alloc_mem_hex(void *ptr);
+
+	void	intern_free(void *ptr);
+	void	*intern_malloc(size_t size);
+	void	*intern_realloc(void *ptr, size_t size);
 
 	void	*allocate(void** l, void **fl, size_t s);
 	void	*allocate_large(void** l, size_t s);

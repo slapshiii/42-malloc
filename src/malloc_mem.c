@@ -203,11 +203,3 @@ int		try_extend_chunk(void *ptr, size_t size) {
 	set_value(ptr + realloc_size 	, realloc_size + 0b001);
 	return (0);
 }
-
-void	set_value(void *addr, size_t val) {
-	*(size_t*)(addr) = val;
-}
-
-size_t	get_value(void *addr) {
-	return *(size_t*)(addr);
-}

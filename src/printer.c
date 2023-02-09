@@ -107,13 +107,14 @@ size_t	print_bucket(heap_t *root) {
 
 void    show_alloc_mem() {
 	pthread_mutex_lock(&mutex_malloc);
+	char *string[3] = {"TINY  : ", "SMALL : ", "LARGE : "};
 	size_t total = 0;
-	ft_putendl_fd("TINY : ", m.debug.output);
-	total += print_bucket(m.heaplist[e_tiny]);
-	ft_putendl_fd("SMALL : ", m.debug.output);
-	total += print_bucket(m.heaplist[e_small]);
-	ft_putendl_fd("LARGE : ", m.debug.output);
-	total += print_bucket(m.heaplist[e_large]);
+	for (INTERNAL_SIZE_T i = 0; i < 3; ++i) {
+		ft_putstr_fd(string[i], m.debug.output);
+		ft_putptr_fd((m.heaplist[i]), m.debug.output);
+		ft_putchar_fd('\n', m.debug.output);
+		total += print_bucket(m.heaplist[i]);
+	}
 	ft_putstr_fd("Total : ", m.debug.output);
 	ft_putnbr_fd(total, m.debug.output);
 	ft_putstr_fd(" bytes\n", m.debug.output);
@@ -123,11 +124,11 @@ void    show_alloc_mem() {
 void    show_alloc_mem_hex(void *ptr) {
 	pthread_mutex_lock(&mutex_malloc);
 	victim_info_t victim = get_ptr_info(ptr);
-	if (check_ptr(victim, ptr))
-		return;
-	if (ISMMAP(victim.heap))
-		hexdump(ptr, GETSIZE(victim.heap) - sizeof(heap_t));
-	else
-		hexdump(ptr, GETSIZE(victim.chunk) - 2*SIZE_SZ);
+	if (victim.heap != NULL) {
+		if (ISMMAP(victim.heap))
+			hexdump(ptr, GETSIZE(victim.heap) - sizeof(heap_t));
+		else
+			hexdump(ptr, GETSIZE(victim.chunk) - 2*SIZE_SZ);
+	}
 	pthread_mutex_unlock(&mutex_malloc);
 }

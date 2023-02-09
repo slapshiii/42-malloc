@@ -55,7 +55,6 @@ victim_info_t get_ptr_info(void *ptr) {
 					if (chunk2mem(chunk) == ptr){
 						return ((victim_info_t){root, chunk, GETSIZE(chunk)});
 					}
-
 					chunk = next_chunk(chunk);
 				}
 			}

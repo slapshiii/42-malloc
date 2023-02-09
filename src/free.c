@@ -50,7 +50,7 @@ void	free_chunk(victim_info_t victim) {
 			munmap((void*)(victim.heap), victim.heap->size);
 		}
 	}
-	fill_pattern((void*)victim.chunk+sizeof(chunk_t), m.debug.pattern_free, GETSIZE(victim.chunk)-4*SIZE_SZ);
+	fill_pattern((void*)victim.chunk + 2*SIZE_SZ, m.debug.pattern_free, GETSIZE(victim.chunk)-2*SIZE_SZ);
 }
 
 void    intern_free(void *ptr) {

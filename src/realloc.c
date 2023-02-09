@@ -6,6 +6,8 @@ void    *intern_realloc(void *ptr, size_t size) {
 		return (NULL);
 	}
 	size = get_align_size(size);
+	if (!ptr)
+		return(intern_malloc(size));
 	victim_info_t victim = get_ptr_info(ptr);
 	if (check_ptr(victim, ptr))
 		return (NULL);
@@ -45,7 +47,7 @@ void    *intern_realloc(void *ptr, size_t size) {
 	return (res);
 }
 
-void    *ft_realloc(void *ptr, size_t size) {
+void    *realloc(void *ptr, size_t size) {
 	pthread_mutex_lock(&mutex_malloc);
 	ptr = intern_realloc(ptr, size);
 	pthread_mutex_unlock(&mutex_malloc);

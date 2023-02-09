@@ -81,7 +81,7 @@ void	*intern_malloc(size_t size) {
 	return res;
 }
 
-void    *ft_malloc(size_t size) {
+void    *malloc(size_t size) {
 	pthread_mutex_lock(&mutex_malloc);
 	void    *res = NULL;
 	res = intern_malloc(size);

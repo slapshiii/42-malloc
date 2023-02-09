@@ -3,17 +3,27 @@
 int			check_ptr(victim_info_t victim, void *ptr) {
 	if (victim.chunk == NULL) {
 		ft_putptr_fd(ptr, m.debug.output);
-		ft_putstr_fd(" - is not valid. Aborting\n", m.debug.output);
-		if (m.debug.validate_ptrs == E_ON)
+		ft_putstr_fd(" - is not valid.", m.debug.output);
+		if (m.debug.validate_ptrs == E_ON) {
+			ft_putendl_fd(" Aborting...", m.debug.output);
 			abort();
-		else return (1);
+		}
+		else {
+			ft_putendl_fd(" Warning!", m.debug.output);
+			return (1);
+		}
 	}
 	if (!ISALLOC(victim.chunk)) {
 		ft_putptr_fd(ptr, m.debug.output);
-		ft_putstr_fd(" - is already freed. Aborting\n", m.debug.output);
-		if (m.debug.validate_ptrs == E_ON)
+		ft_putstr_fd(" - is already freed.", m.debug.output);
+		if (m.debug.validate_ptrs == E_ON) {
+			ft_putendl_fd(" Aborting...", m.debug.output);
 			abort();
-		else return (1);
+		}
+		else {
+			ft_putendl_fd(" Warning!", m.debug.output);
+			return (1);
+		}
 	}
 	return (0);
 }

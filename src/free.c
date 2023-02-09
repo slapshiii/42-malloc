@@ -68,7 +68,7 @@ void    intern_free(void *ptr) {
 	}
 }
 
-void    ft_free(void *ptr) {
+void    free(void *ptr) {
 	pthread_mutex_lock(&mutex_malloc);
 	intern_free(ptr);
 	pthread_mutex_unlock(&mutex_malloc);

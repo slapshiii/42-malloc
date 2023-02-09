@@ -16,19 +16,19 @@ C_FILE =	malloc.c \
 			free.c \
 			realloc.c \
 			globals.c \
-			malloc_page.c \
-			malloc_mem.c \
+			heap.c \
+			chunk.c \
 			malloc_utils.c \
-			malloc_debug.c \
-			bonus.c \
-			printer.c
+			printer.c 
+# bonus.c \
+# malloc_debug.c
 
 INCS := ft_malloc.h libft/libft.h
 
 SRCS =	$(addprefix $(SRCDIR)/, $(C_FILE))
 OBJS = 	$(addprefix $(OBJDIR)/, $(C_FILE:%.c=%.o))
 
-CFLAGS += -Wall -Werror -Wextra
+CFLAGS += -Wall -Werror -Wextra -g3
 
 CC=gcc
 
@@ -46,7 +46,7 @@ ${LIBFTDIR}/libft.a:
 	$(MAKE) -C $(LIBFTDIR)/ all
 
 test: ${NAME}
-	${CC} $(INC_DIRS) -o a.out main.c -L. -lft_malloc $(LIB_DIRS) $(LIBS)
+	${CC} $(INC_DIRS) -g3 main.c -L. -lft_malloc
 	-/usr/bin/time -v ./run.sh ./a.out
 
 clean:

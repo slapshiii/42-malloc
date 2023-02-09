@@ -1,24 +1,42 @@
 #include "../ft_malloc.h"
 
 void    *intern_realloc(void *ptr, size_t size) {
-	if (validate_ptr(ptr - SIZE) == 0) {
-		if (m.debug.validate_ptrs == E_OFF) {
-			return (NULL);
-		} else
-			abort_validate_ptr(ptr);
+	if (size == 0 && ptr) {
+		intern_free(ptr);
+		return (NULL);
 	}
-	if (try_extend_chunk(ptr, size)) {
-		void *res = intern_malloc(size);
-		if (res != NULL) {
-			ft_memmove(res, ptr, GETSIZE(ptr - SIZE));
-			intern_free(ptr);
-			ptr = res;
+	size = get_align_size(size);
+	victim_info_t victim = get_ptr_info(ptr);
+	if (victim.chunk == NULL)
+		return (NULL);
+	if (size <= victim.size)
+		return (ptr);
+	if (get_zone_size(victim.size) == (size_t)-1 || get_zone_size(size) != get_zone_size(victim.size)) {
+		intern_free(ptr);
+		return (ft_malloc(size));
+	}
+	if (victim.chunk != get_last_heap_block(victim.heap)) {
+		chunk_t *next = next_chunk(victim.chunk);
+		size_t sizefree = victim.size + GETSIZE(next);
+		if (!ISALLOC(next) && sizefree >= size) {
+			if (sizefree - size >= MINSIZE) {
+				chunk_t *new_chunk = (void*)(victim.chunk) + size;
+				init_chunk(new_chunk, sizefree - size, 0, size + 1);
+				victim.chunk->size = size + 1;
+				new_chunk->bk = next->bk;
+				new_chunk->fd = next->fd;
+			} else {
+				victim.heap->chk_cnt--;
+				victim.chunk->size = sizefree + 1;
+				if (next != get_last_heap_block(victim.heap))
+					next_chunk(next)->prev_size = sizefree + 1;
+			}
 		}
 	}
 	return (ptr);
 }
 
-void    *realloc(void *ptr, size_t size) {
+void    *ft_realloc(void *ptr, size_t size) {
 	pthread_mutex_lock(&mutex_malloc);
 	ptr = intern_realloc(ptr, size);
 	pthread_mutex_unlock(&mutex_malloc);

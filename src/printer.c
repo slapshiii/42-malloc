@@ -69,25 +69,36 @@ void hexdump(const void* data, size_t size) {
 	}
 }
 
-size_t	print_bucket(void *root) {
+void	print_chunk(chunk_t *chunk) {
+	ft_putptr_fd(chunk, m.debug.output);
+	ft_putstr_fd(" - ", m.debug.output);
+	ft_putptr_fd(chunk + GETSIZE(chunk) + SIZE_SZ - 1, m.debug.output);
+	ft_putstr_fd(" | ", m.debug.output);
+	ft_putnbr_fd((int)GETSIZE(chunk), m.debug.output);
+	ft_putstr_fd(" bytes", m.debug.output);
+	if (ISALLOC(chunk)) {
+		ft_putstr_fd(" allocated\n", m.debug.output);
+	} else {
+		ft_putstr_fd(" free\n", m.debug.output);
+	}
+}
+
+size_t	print_bucket(heap_t *root) {
 	size_t res = 0;
-	while (root != NULL && GETSIZE(root) != 0)
+	while (root != NULL)
     {
-		ft_putptr_fd(root, m.debug.output);
-		ft_putstr_fd(" - ", m.debug.output);
-		ft_putptr_fd(root + GETSIZE(root) + SIZE - 1, m.debug.output);
-		ft_putstr_fd(" | ", m.debug.output);
-		ft_putnbr_fd((int)GETSIZE(root), m.debug.output);
-		ft_putstr_fd(" bytes", m.debug.output);
-        if (ISALLOC(root)) {
+		if (ISMMAP(root)) {
+			print_chunk((chunk_t *)root);
 			res += GETSIZE(root);
-			ft_putstr_fd(" allocated\n", m.debug.output);
-        } else {
-			ft_putstr_fd(" free\n", m.debug.output);
-        }
-        root=(size_t*)(root + GETSIZE(root) + 2 * SIZE);
-		if (get_value(root) == 0b01)
-			root = (void *)get_value(root + FDPTR);
+		} else {
+			chunk_t *chunk = heap2chunk(root);
+			for (INTERNAL_SIZE_T i = 0; i < root->chk_cnt; ++i) {
+				print_chunk(chunk);
+				res += GETSIZE(chunk);
+				chunk = next_chunk(chunk);
+			}
+		}
+		root = root->fd;
     }
 	return (res);
 }
@@ -95,18 +106,12 @@ size_t	print_bucket(void *root) {
 void    show_alloc_mem() {
 	pthread_mutex_lock(&mutex_malloc);
 	size_t total = 0;
-	ft_putstr_fd("TINY : ", m.debug.output);
-	ft_putptr_fd(m.lst_page_s, m.debug.output);
-	ft_putstr_fd("\n", m.debug.output);
-	total += print_bucket(m.lst_page_s);
-	ft_putstr_fd("SMALL : ", m.debug.output);
-	ft_putptr_fd(m.lst_page_m, m.debug.output);
-	ft_putstr_fd("\n", m.debug.output);
-	total += print_bucket(m.lst_page_m);
-	ft_putstr_fd("LARGE : ", m.debug.output);
-	ft_putptr_fd(m.lst_page_l, m.debug.output);
-	ft_putstr_fd("\n", m.debug.output);
-	total += print_bucket(m.lst_page_l);
+	ft_putendl_fd("TINY : ", m.debug.output);
+	total += print_bucket(m.heaplist[e_tiny]);
+	ft_putendl_fd("SMALL : ", m.debug.output);
+	total += print_bucket(m.heaplist[e_small]);
+	ft_putendl_fd("LARGE : ", m.debug.output);
+	total += print_bucket(m.heaplist[e_large]);
 	ft_putstr_fd("Total : ", m.debug.output);
 	ft_putnbr_fd(total, m.debug.output);
 	ft_putstr_fd(" bytes\n", m.debug.output);
@@ -115,13 +120,13 @@ void    show_alloc_mem() {
 
 void    show_alloc_mem_hex(void *ptr) {
 	pthread_mutex_lock(&mutex_malloc);
-	if (validate_ptr(ptr - SIZE) == 0) {
-		if (m.debug.validate_ptrs == E_OFF) {
-			pthread_mutex_unlock(&mutex_malloc);
-			return;
-		} else
-			abort_validate_ptr(ptr);
-	}
-	hexdump(ptr, GETSIZE(ptr - SIZE));
+	// if (validate_ptr(ptr - SIZE_SZ) == 0) {
+	// 	if (m.debug.validate_ptrs == E_OFF) {
+	// 		pthread_mutex_unlock(&mutex_malloc);
+	// 		return;
+	// 	} else
+	// 		abort_validate_ptr(ptr);
+	// }
+	hexdump(ptr, GETSIZE(mem2chunk(ptr)));
 	pthread_mutex_unlock(&mutex_malloc);
 }

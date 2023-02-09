@@ -1,7 +1,7 @@
 #include "../ft_malloc.h"
 
 void		abort_validate_ptr(void *ptr) {
-	ft_putptr_fd(ptr - SIZE, m.debug.output);
+	ft_putptr_fd(ptr - SIZE_SZ, m.debug.output);
 	switch (m.debug.validate_ptrs)
 	{
 	case E_FREED:
@@ -17,7 +17,7 @@ void		abort_validate_ptr(void *ptr) {
 	abort();
 }
 
-static int	validate_ptr_list(void *root, void *ptr) {
+static int	validate_ptr_list(heap_t *root, void *ptr) {
 	while (root != NULL)
 	{
 		if (ptr == root && ISALLOC(root)) {
@@ -25,9 +25,6 @@ static int	validate_ptr_list(void *root, void *ptr) {
 		} else if (ptr == root && !ISALLOC(root)) {
 			return (E_FREED);
 		}
-		root=(size_t*)(root + GETSIZE(root) + 2 * SIZE);
-		if (get_value(root) == 0b01)
-			root = (void *)get_value(root + FDPTR);
 	}
 	return (E_INVALID);
 }
@@ -48,8 +45,8 @@ int			validate_ptr(void *ptr) {
 	return (0);
 }
 
-static void	report_allocation(void *root) {
-	while (root != NULL && GETSIZE(root) != 0)
+static void	report_allocation(heap_t *root) {
+	while (root != NULL)
     {
         if (ISALLOC(root)) {
 			ft_putptr_fd(root, m.debug.output);
@@ -60,9 +57,6 @@ static void	report_allocation(void *root) {
 			ft_putstr_fd(" bytes", m.debug.output);
 			ft_putstr_fd(" allocated\n", m.debug.output);
         }
-        root=(size_t*)(root + GETSIZE(root) + 2 * SIZE);
-		if (get_value(root) == 0b01)
-			root = (void *)get_value(root + FDPTR);
     }
 }
 

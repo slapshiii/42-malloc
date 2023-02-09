@@ -124,6 +124,7 @@ void    show_alloc_mem() {
 void    show_alloc_mem_hex(void *ptr) {
 	pthread_mutex_lock(&mutex_malloc);
 	victim_info_t victim = get_ptr_info(ptr);
+	check_ptr(victim, ptr);
 	if (victim.heap != NULL) {
 		if (ISMMAP(victim.heap))
 			hexdump(ptr, GETSIZE(victim.heap) - sizeof(heap_t));

@@ -50,10 +50,13 @@ void	free_chunk(victim_info_t victim) {
 			munmap((void*)(victim.heap), victim.heap->size);
 		}
 	}
+	fill_pattern((void*)victim.chunk+sizeof(chunk_t), m.debug.pattern_free, GETSIZE(victim.chunk)-4*SIZE_SZ);
 }
 
 void    intern_free(void *ptr) {
 	victim_info_t victim = get_ptr_info(ptr);
+	if (check_ptr(victim, ptr))
+		return;
 	if (victim.chunk == NULL) {
 		ft_putendl_fd("Invalid ptr", 2);
 		return;

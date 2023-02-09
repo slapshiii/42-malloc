@@ -1,13 +1,13 @@
 #include "../ft_malloc.h"
 
-void    *intern_realloc(void *ptr, size_t size) {	//to optimise
+void    *intern_realloc(void *ptr, size_t size) {
 	if (size == 0 && ptr) {
 		intern_free(ptr);
 		return (NULL);
 	}
 	size = get_align_size(size);
 	victim_info_t victim = get_ptr_info(ptr);
-	if (victim.chunk == NULL)
+	if (check_ptr(victim, ptr))
 		return (NULL);
 	void *res = NULL;
 	if (get_zone_size(victim.size) == (size_t)-1 || get_zone_size(size) != get_zone_size(victim.size)) {

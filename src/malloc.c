@@ -1,10 +1,6 @@
 #include "../ft_malloc.h"
 
 int		init_malloc() {
-	if (m.pagesize == 0) {
-		m.debug.output = 2;
-		m.pagesize = getpagesize();
-	}
 	if (m.heaplist[e_tiny] == NULL) {
 		m.heaplist[e_tiny] = create_heap(TINY_ZONE_SIZE, NULL);
 		if (m.heaplist[e_tiny] == NULL)
@@ -40,6 +36,7 @@ void    *allocate(heap_t **l, size_t s) {
 	} else {
 		victim.chunk->size++;
 	}
+	fill_pattern(chunk2mem(victim.chunk), m.debug.pattern_alloc, GETSIZE(victim.chunk) - 2*SIZE_SZ);
 	return (chunk2mem(victim.chunk));
 }
 
@@ -61,6 +58,7 @@ void    *allocate_mmap(heap_t **l, size_t s) {
 	new_heap->size = s | (PREV_INUSE | IS_MMAPPED);
 	new_heap->bk = last;
 	new_heap->fd = NULL;
+	fill_pattern(heap2chunk(new_heap), m.debug.pattern_alloc, GETSIZE(new_heap) - sizeof(heap_t));
 	return (heap2chunk(new_heap));
 }
 

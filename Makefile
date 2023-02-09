@@ -19,9 +19,9 @@ C_FILE =	malloc.c \
 			heap.c \
 			chunk.c \
 			malloc_utils.c \
-			printer.c 
-# bonus.c \
-# malloc_debug.c
+			printer.c \
+			bonus.c \
+			malloc_debug.c
 
 INCS := ft_malloc.h libft/libft.h
 

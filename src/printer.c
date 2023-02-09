@@ -122,13 +122,12 @@ void    show_alloc_mem() {
 
 void    show_alloc_mem_hex(void *ptr) {
 	pthread_mutex_lock(&mutex_malloc);
-	// if (validate_ptr(ptr - SIZE_SZ) == 0) {
-	// 	if (m.debug.validate_ptrs == E_OFF) {
-	// 		pthread_mutex_unlock(&mutex_malloc);
-	// 		return;
-	// 	} else
-	// 		abort_validate_ptr(ptr);
-	// }
-	hexdump(ptr, GETSIZE(mem2chunk(ptr)));
+	victim_info_t victim = get_ptr_info(ptr);
+	if (check_ptr(victim, ptr))
+		return;
+	if (ISMMAP(victim.heap))
+		hexdump(ptr, GETSIZE(victim.heap) - sizeof(heap_t));
+	else
+		hexdump(ptr, GETSIZE(victim.chunk) - 2*SIZE_SZ);
 	pthread_mutex_unlock(&mutex_malloc);
 }

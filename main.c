@@ -44,10 +44,9 @@ int main(int ac, char **av)
     while (i < 1024) {
         addr[i] = (char*)ft_malloc(1024);
         addr[i][0] = 42;
-        ft_free(addr[i]);
         ++i;
     }
-    // sleep(5);
+
     // i = 0;
     // while (i < 1024) {
     //     // addr[i] = (char*)ft_malloc(1024);
@@ -55,7 +54,6 @@ int main(int ac, char **av)
     //     ft_free(addr[i]);
     //     ++i;
     // }
-    // ft_free(addr[1]);
     // ft_free(addr[3]);
     // ft_free(addr[2]);
     // ft_free(addr[6]);
@@ -63,7 +61,8 @@ int main(int ac, char **av)
     // show_alloc_mem();
     // ft_free(addr2);
     // show_alloc_mem();
-    // addr[1] = (char*)ft_malloc(1040);
+    // addr[1] = (char*)ft_realloc(addr[1], 2000);
+    // show_alloc_mem_hex(addr[1]);
     // ft_free(addr[0]);
     // show_alloc_mem();
     // ft_free(addr1);

@@ -20,7 +20,7 @@
 	 *  medium: >= 256 && < 2048
 	 *  large: > 2048
 	 */
-	#define PAGESIZE getpagesize()
+	#define PAGESIZE m.pagesize
 	#define TINY_ZONE_SIZE (size_t)(8 * PAGESIZE)
 	#define TINY_CHUNK_SIZE (size_t)(TINY_ZONE_SIZE / 128)
 	#define SMALL_ZONE_SIZE (size_t)(64 * PAGESIZE)
@@ -139,15 +139,14 @@
 	void	ft_puthex_char(unsigned char c, int fd);
 
 	// DEBUG
-	// void	report_allocations_option(const char *option);
-	// void	validate_ptrs_option(const char *option);
-	// void	output_option(const char *option);
-	// void	pattern_alloc_option(const char *option);
-	// void	pattern_free_option(const char *option);
+	void	report_allocations_option(const char *option);
+	void	validate_ptrs_option(const char *option);
+	void	output_option(const char *option);
+	void	pattern_alloc_option(const char *option);
+	void	pattern_free_option(const char *option);
 
-	// void	report_allocations(void);
-	// void	abort_validate_ptr(void *ptr);
-	// int		validate_ptr(void *ptr);
-	// void	fill_pattern(void *addr, char *pattern, size_t size);
+	void	report_allocations(void);
+	int		check_ptr(victim_info_t victim, void *ptr);
+	void	fill_pattern(void *addr, char *pattern, size_t size);
 
 #endif	//FT_MALLOC_H

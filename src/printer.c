@@ -89,12 +89,14 @@ size_t	print_bucket(heap_t *root) {
     {
 		if (ISMMAP(root)) {
 			print_chunk((chunk_t *)root);
-			res += GETSIZE(root);
+			if (ISALLOC(root))
+				res += GETSIZE(root);
 		} else {
 			chunk_t *chunk = heap2chunk(root);
 			for (INTERNAL_SIZE_T i = 0; i < root->chk_cnt; ++i) {
 				print_chunk(chunk);
-				res += GETSIZE(chunk);
+				if (ISALLOC(chunk))
+					res += GETSIZE(chunk);
 				chunk = next_chunk(chunk);
 			}
 		}

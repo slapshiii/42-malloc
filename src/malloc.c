@@ -32,8 +32,8 @@ void    *allocate(heap_t **l, size_t s) {
 	}
 	if (victim.size - s >= MINSIZE) {
 		chunk_t *new_chunk = (void*)(victim.chunk) + s;
-		init_chunk(new_chunk, victim.size - s, 0, s + 1);
-		victim.chunk->size = s + 1;
+		init_chunk(new_chunk, victim.size - s, 0, s | PREV_INUSE);
+		victim.chunk->size = s | PREV_INUSE;
 		victim.heap->chk_cnt++;
 		new_chunk->bk = victim.chunk->bk;
 		new_chunk->fd = victim.chunk->fd;
@@ -41,6 +41,27 @@ void    *allocate(heap_t **l, size_t s) {
 		victim.chunk->size++;
 	}
 	return (chunk2mem(victim.chunk));
+}
+
+void    *allocate_mmap(heap_t **l, size_t s) {
+	heap_t *last = get_last_heap(*l);
+	heap_t *new_heap = mmap(
+		NULL, s,
+		PROT_READ|PROT_WRITE,
+		MAP_PRIVATE|MAP_ANONYMOUS,
+		-1, 0
+	);
+	if (!new_heap)
+		return (NULL);
+	if (!last)
+		*l = new_heap;
+	else
+		last->fd = new_heap;
+	new_heap->chk_cnt = 0;
+	new_heap->size = s | (PREV_INUSE | IS_MMAPPED);
+	new_heap->bk = last;
+	new_heap->fd = NULL;
+	return (heap2chunk(new_heap));
 }
 
 void	*intern_malloc(size_t size) {
@@ -57,7 +78,7 @@ void	*intern_malloc(size_t size) {
 	} else if (size <= SMALL_CHUNK_SIZE) {
 		res = allocate(&m.heaplist[e_small], size);
 	} else {
-		exit(5);
+		res = allocate_mmap(&m.heaplist[e_large], size + MALLOC_ALIGNMENT);
 	}
 	return res;
 }

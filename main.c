@@ -19,13 +19,12 @@ int main(int ac, char **av)
     // ft_malloc(1024 * 1024 * 128);
     // show_alloc_mem();
 
-    int i;
-    char *addr1;
-    addr1 = ft_malloc(16);
-    ft_free(NULL);
-    ft_free((void*)addr1 + 5);
-    if (ft_realloc((void*)addr1 + 5, 10) == NULL)
-        print("Bonjours\n");
+    // int i;
+    // char *addr1 = ft_malloc(M);
+    // ft_free(NULL);
+    // ft_free((void*)addr1 + 5);
+    // if (ft_realloc((void*)addr1 + 5, 10) == NULL)
+    //     print("Bonjours\n");
 
     // char *addr1;
     // char *addr2;
@@ -39,12 +38,20 @@ int main(int ac, char **av)
     // addr3[127*M] = 42;
     // print(addr3);
 
-    // int i;
+    int i;
+    i = 0;
+    char *addr[1024];
+    while (i < 1024) {
+        addr[i] = (char*)ft_malloc(1024);
+        addr[i][0] = 42;
+        ft_free(addr[i]);
+        ++i;
+    }
+    // sleep(5);
     // i = 0;
-    // char *addr[1024];
     // while (i < 1024) {
-    //     addr[i] = (char*)ft_malloc(1024);
-    //     addr[i][0] = 42;
+    //     // addr[i] = (char*)ft_malloc(1024);
+    //     // addr[i][0] = 42;
     //     ft_free(addr[i]);
     //     ++i;
     // }
@@ -59,8 +66,9 @@ int main(int ac, char **av)
     // addr[1] = (char*)ft_malloc(1040);
     // ft_free(addr[0]);
     // show_alloc_mem();
-    // ft_free(addr[1]);
-    show_alloc_mem();
+    // ft_free(addr1);
+    // show_alloc_mem();
+    // sleep(5);
 
     return (0);
 }

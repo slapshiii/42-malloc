@@ -1,6 +1,6 @@
 #include "../ft_malloc.h"
 
-void    *intern_realloc(void *ptr, size_t size) {
+void    *intern_realloc(void *ptr, size_t size) {	//to optimise
 	if (size == 0 && ptr) {
 		intern_free(ptr);
 		return (NULL);
@@ -9,11 +9,14 @@ void    *intern_realloc(void *ptr, size_t size) {
 	victim_info_t victim = get_ptr_info(ptr);
 	if (victim.chunk == NULL)
 		return (NULL);
-	if (size <= victim.size)
-		return (ptr);
+	void *res = NULL;
 	if (get_zone_size(victim.size) == (size_t)-1 || get_zone_size(size) != get_zone_size(victim.size)) {
-		intern_free(ptr);
-		return (ft_malloc(size));
+		res = intern_malloc(size);
+		if (res) {
+			ft_memmove(res, ptr, ((victim.size > size) ? size : victim.size) - 2*SIZE_SZ);
+			intern_free(ptr);
+		}
+		return (res);
 	}
 	if (victim.chunk != get_last_heap_block(victim.heap)) {
 		chunk_t *next = next_chunk(victim.chunk);
@@ -31,9 +34,15 @@ void    *intern_realloc(void *ptr, size_t size) {
 				if (next != get_last_heap_block(victim.heap))
 					next_chunk(next)->prev_size = sizefree + 1;
 			}
+			return (ptr);
 		}
 	}
-	return (ptr);
+	res = intern_malloc(size);
+	if (res) {
+		ft_memmove(res, ptr, ((victim.size > size) ? size : victim.size) - 2*SIZE_SZ);
+		intern_free(ptr);
+	}
+	return (res);
 }
 
 void    *ft_realloc(void *ptr, size_t size) {

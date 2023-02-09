@@ -15,11 +15,12 @@
 	#include <signal.h>
 
 	/**
+	 * 	for PAGESIZE 4096
 	 *  small: < 256
 	 *  medium: >= 256 && < 2048
 	 *  large: > 2048
 	 */
-	#define PAGESIZE 4096
+	#define PAGESIZE getpagesize()
 	#define TINY_ZONE_SIZE (size_t)(8 * PAGESIZE)
 	#define TINY_CHUNK_SIZE (size_t)(TINY_ZONE_SIZE / 128)
 	#define SMALL_ZONE_SIZE (size_t)(64 * PAGESIZE)

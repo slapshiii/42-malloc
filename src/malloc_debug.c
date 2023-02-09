@@ -6,6 +6,7 @@ int			check_ptr(victim_info_t victim, void *ptr) {
 		ft_putstr_fd(" - is not valid.", m.debug.output);
 		if (m.debug.validate_ptrs == E_ON) {
 			ft_putendl_fd(" Aborting...", m.debug.output);
+			pthread_mutex_unlock(&mutex_malloc);
 			abort();
 		}
 		else {
@@ -18,6 +19,7 @@ int			check_ptr(victim_info_t victim, void *ptr) {
 		ft_putstr_fd(" - is already freed.", m.debug.output);
 		if (m.debug.validate_ptrs == E_ON) {
 			ft_putendl_fd(" Aborting...", m.debug.output);
+			pthread_mutex_unlock(&mutex_malloc);
 			abort();
 		}
 		else {

@@ -11,6 +11,8 @@ void    *intern_realloc(void *ptr, size_t size) {
 	victim_info_t victim = get_ptr_info(ptr);
 	if (check_ptr(victim, ptr))
 		return (NULL);
+	if (victim.chunk->size == size)
+		return (ptr);
 	void *res = NULL;
 	if (get_zone_size(victim.size) == (size_t)-1 || get_zone_size(size) != get_zone_size(victim.size)) {
 		res = intern_malloc(size);

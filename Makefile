@@ -54,7 +54,7 @@ clean:
 	$(MAKE) -C $(LIBFTDIR)/ clean
 
 fclean:		clean
-	-rm -rf ${NAME} a.out
+	-rm -rf ${NAME} a.out *.txt
 	-unlink libft_malloc.so
 	$(MAKE) -C $(LIBFTDIR)/ fclean
 

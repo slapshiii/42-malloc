@@ -28,6 +28,10 @@ static void destroy_malloc() {
 		if (m.debug.output > 2)
 			close(m.debug.output);
 	}
+	if (m.heaplist[e_tiny])
+		munmap(m.heaplist[e_tiny], m.heaplist[e_tiny]->size);
+	if (m.heaplist[e_small])
+		munmap(m.heaplist[e_small], m.heaplist[e_small]->size);
 }
 
 void	report_allocations_option(const char *option) {

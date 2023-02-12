@@ -14,7 +14,7 @@ int			check_ptr(victim_info_t victim, void *ptr) {
 			return (1);
 		}
 	}
-	if (!ISALLOC(victim.chunk)) {
+	if ((ISMMAP(victim.heap) && !ISALLOC(victim.heap)) || (!ISMMAP(victim.heap) && !ISALLOC(victim.chunk))) {
 		ft_putptr_fd(ptr, m.debug.output);
 		ft_putstr_fd(" - is already freed.", m.debug.output);
 		if (m.debug.validate_ptrs == E_ON) {
@@ -31,21 +31,20 @@ int			check_ptr(victim_info_t victim, void *ptr) {
 }
 
 static void	report_allocation(heap_t *root) {
-	while (root != NULL)
+	heap_t *cur = root;
+	while (cur)
     {
-		if (ISMMAP(root)) {
-			if (ISALLOC(root)) {
-			ft_putptr_fd(root, m.debug.output);
+		if (ISMMAP(cur) && ISALLOC(cur)) {
+			ft_putptr_fd(cur, m.debug.output);
 			ft_putstr_fd(" - ", m.debug.output);
-			ft_putptr_fd(root + GETSIZE(root), m.debug.output);
+			ft_putptr_fd(cur + GETSIZE(cur), m.debug.output);
 			ft_putstr_fd(" | ", m.debug.output);
-			ft_putnbr_fd((int)GETSIZE(root), m.debug.output);
+			ft_putnbr_fd((int)GETSIZE(cur), m.debug.output);
 			ft_putstr_fd(" bytes", m.debug.output);
 			ft_putstr_fd(" allocated\n", m.debug.output);
-        }
 		} else {
-			chunk_t *chunk = heap2chunk(root);
-			for (INTERNAL_SIZE_T i = 0; i < root->chk_cnt; ++i) {
+			chunk_t *chunk = heap2chunk(cur);
+			for (INTERNAL_SIZE_T i = 0; i < cur->chk_cnt; ++i) {
 				if (ISALLOC(chunk)){
 					ft_putptr_fd(chunk, m.debug.output);
 					ft_putstr_fd(" - ", m.debug.output);
@@ -58,7 +57,7 @@ static void	report_allocation(heap_t *root) {
 				chunk = next_chunk(chunk);
 			}
 		}
-		root = root->fd;
+		cur = cur->fd;
     }
 }
 
@@ -70,7 +69,7 @@ void	report_allocations(void) {
 }
 
 void	fill_pattern(void *addr, char *pattern, size_t size) {
-	size_t len_pattern = 0;
+	size_t len_pattern;
 	if ((len_pattern = ft_strlen(pattern))) {
 		char *ptr = (char *)addr;
 		for (size_t i = 0; i < size; ++i) {

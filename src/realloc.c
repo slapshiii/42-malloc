@@ -17,8 +17,10 @@ void    *intern_realloc(void *ptr, size_t size) {
 	if (get_zone_size(victim.size) == (size_t)-1 || get_zone_size(size) != get_zone_size(victim.size)) {
 		res = intern_malloc(size);
 		if (res) {
-			ft_memmove(res, ptr, ((victim.size > size) ? size : victim.size) - 2*SIZE_SZ);
+			ft_memmove(res, ptr, ((victim.size > size) ? size : victim.size));
 			intern_free(ptr);
+		} else {
+			ft_putendl_fd("Malloc failed", m.debug.output);
 		}
 		return (res);
 	}

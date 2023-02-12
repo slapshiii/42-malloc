@@ -125,7 +125,7 @@
 
 	victim_info_t get_ptr_info(void *ptr);
 
-	void	init_chunk(chunk_t *addr, size_t size, int free, size_t prev_sz);
+	void	init_chunk(chunk_t *addr, size_t size, int flag, size_t prev_sz);
 
 	void	merge_next_chunk(chunk_t *chunk);
 

@@ -1,16 +1,14 @@
 #include "../ft_malloc.h"
 
-void init_chunk(chunk_t *addr, size_t size, int free, size_t prev_sz) {
+void init_chunk(chunk_t *addr, size_t size, int flag, size_t prev_sz) {
 	addr->prev_size = prev_sz;
-	addr->size = size + free;
-	if (free) {
+	addr->size = size | flag;
+	if (flag & PREV_INUSE) {
 		addr->fd = NULL;
 		addr->bk = NULL;
-		// if (ft_strlen(m.debug.pattern_free))
-		// 	fill_pattern(addr + sizeof(chunk_t), m.debug.pattern_free, size - sizeof(chunk_t));
+		fill_pattern((void*)addr+sizeof(chunk_t), m.debug.pattern_free, size - sizeof(chunk_t));
 	} else {
-		// if (ft_strlen(m.debug.pattern_alloc))
-		// 	fill_pattern(chunk2mem(addr), m.debug.pattern_alloc, size - 2*SIZE_SZ);
+		fill_pattern(chunk2mem(addr), m.debug.pattern_alloc, size - 2*SIZE_SZ);
 	}
 }
 

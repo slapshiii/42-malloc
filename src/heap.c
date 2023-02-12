@@ -7,7 +7,7 @@ heap_t	*create_heap(size_t s, heap_t *prev_heap) {
 		MAP_PRIVATE|MAP_ANONYMOUS,
 		-1, 0
 	);
-	if (new_heap == MAP_FAILED){
+	if (new_heap == MAP_FAILED) {
 		return (NULL);
 	}
 	new_heap->chk_cnt = 1;
@@ -23,8 +23,7 @@ heap_t	*create_heap(size_t s, heap_t *prev_heap) {
 
 heap_t	*get_last_heap(heap_t *root) {
 	heap_t	*cur = root;
-	while (cur && cur->fd)
-	{
+	while (cur && cur->fd) {
 		cur = cur->fd;
 	}
 	return (cur);	

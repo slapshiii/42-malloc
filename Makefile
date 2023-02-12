@@ -13,18 +13,22 @@ LIBS = -lpthread -lft
 LIB_DIRS = -L./ -L./libft
 
 C_FILE =	malloc.c \
-			malloc_page.c \
-			malloc_mem.c \
+			free.c \
+			realloc.c \
+			globals.c \
+			heap.c \
+			chunk.c \
 			malloc_utils.c \
-			malloc_debug.c \
-			printer.c
+			printer.c \
+			bonus.c \
+			malloc_debug.c
 
 INCS := ft_malloc.h libft/libft.h
 
 SRCS =	$(addprefix $(SRCDIR)/, $(C_FILE))
 OBJS = 	$(addprefix $(OBJDIR)/, $(C_FILE:%.c=%.o))
 
-CFLAGS += -Wall -Werror -Wextra
+CFLAGS += -Wall -Werror -Wextra -g3
 
 CC=gcc
 
@@ -42,7 +46,7 @@ ${LIBFTDIR}/libft.a:
 	$(MAKE) -C $(LIBFTDIR)/ all
 
 test: ${NAME}
-	${CC} $(INC_DIRS) -g3 -o a.out main.c -L. -lft_malloc $(LIB_DIRS) $(LIBS)
+	${CC} $(INC_DIRS) main.c -L. -lft_malloc
 	-/usr/bin/time -v ./run.sh ./a.out
 
 clean:
@@ -50,7 +54,7 @@ clean:
 	$(MAKE) -C $(LIBFTDIR)/ clean
 
 fclean:		clean
-	-rm -rf ${NAME} a.out
+	-rm -rf ${NAME} a.out *.txt
 	-unlink libft_malloc.so
 	$(MAKE) -C $(LIBFTDIR)/ fclean
 

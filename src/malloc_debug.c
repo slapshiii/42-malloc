@@ -1,141 +1,79 @@
 #include "../ft_malloc.h"
 
-void	report_allocations_option(const char *option) {
-	char *start = ft_strnstr(option, "report_allocations", ft_strlen(option));
-	if (start != NULL) {
-		m.debug.report_allocations = 1;
-	} else
-		m.debug.report_allocations = 0;
-}
-
-void	validate_ptrs_option(const char *option) {
-	char *start = ft_strnstr(option, "validate_ptrs", ft_strlen(option));
-	if (start != NULL) {
-		m.debug.validate_ptrs = E_ON;
-	} else
-		m.debug.validate_ptrs = E_OFF;
-}
-
-void	output_option(const char *option) {
-	char *start = ft_strnstr(option, "output:", ft_strlen(option));
-	if (start != NULL) {
-		start += ft_strlen("output:");
-		char *end = ft_strchr(start, ',');
-		if (end == NULL)
-			end = start + ft_strlen(start);
-		char buf[end-start + 1];
-		ft_strlcpy(buf, start, end - start + 1);
-		if (ft_strcmp(buf, "stderr") == 0)
-			m.debug.output = 2;
-		else if (ft_strcmp(buf, "stdout") == 0)
-			m.debug.output = 1;
-		else
-			m.debug.output = open(buf, O_CREAT|O_WRONLY|O_TRUNC, S_IRWXU|S_IROTH);
-	} else
-		m.debug.output = 2;
-}
-
-void	pattern_alloc_option(const char *option) {
-	char *start = ft_strnstr(option, "fill:", ft_strlen(option));
-	if (start != NULL) {
-		start += ft_strlen("fill:");
-		char *end = ft_strchr(start, ',');
-		if (end == NULL)
-			end = start + ft_strlen(start);
-		ft_strlcpy(m.debug.pattern_alloc, start, end - start + 1);
-	} else
-		bzero(m.debug.pattern_alloc, 128);
-}
-
-void	pattern_free_option(const char *option) {
-	char *start = ft_strnstr(option, "fill_free:", ft_strlen(option));
-	if (start != NULL) {
-		start += ft_strlen("fill_free:");
-		char *end = ft_strchr(start, ',');
-		if (end == NULL)
-			end = start + ft_strlen(start);
-		ft_strlcpy(m.debug.pattern_free, start, end - start + 1);
-	} else
-		bzero(m.debug.pattern_free, 128);
-}
-
-void		abort_validate_ptr(void *ptr) {
-	ft_putptr_fd(ptr - SIZE, m.debug.output);
-	switch (m.debug.validate_ptrs)
-	{
-	case E_FREED:
-		ft_putstr_fd(" - is already freed. Aborting\n", m.debug.output);
-		break;
-	case E_ALLOCATED:
-		ft_putstr_fd(" - is not allocated. Aborting\n", m.debug.output);
-		break;
-	default:
-		ft_putstr_fd(" - is not valid. Aborting\n", m.debug.output);
-		break;
-	}
-	abort();
-}
-
-static int	validate_ptr_list(void *root, void *ptr) {
-	while (root != NULL)
-	{
-		if (ptr == root && ISALLOC(root)) {
-			return (E_ALLOCATED);
-		} else if (ptr == root && !ISALLOC(root)) {
-			return (E_FREED);
+int			check_ptr(victim_info_t victim, void *ptr) {
+	if (victim.chunk == NULL) {
+		ft_putptr_fd(ptr, m.debug.output);
+		ft_putstr_fd(" - is not valid.", m.debug.output);
+		if (m.debug.validate_ptrs == E_ON) {
+			ft_putendl_fd(" Aborting...", m.debug.output);
+			pthread_mutex_unlock(&mutex_malloc);
+			abort();
 		}
-		root=(size_t*)(root + GETSIZE(root) + 2 * SIZE);
-		if (get_value(root) == 0b01)
-			root = (void *)get_value(root + FDPTR);
+		else {
+			ft_putendl_fd(" Warning!", m.debug.output);
+			return (1);
+		}
 	}
-	return (E_INVALID);
-}
-
-int			validate_ptr(void *ptr) {
-	ptrs_val_t res[3];
-
-	res[0] = validate_ptr_list(m.lst_page_s, ptr);
-	res[1] = validate_ptr_list(m.lst_page_m, ptr);
-	res[2] = validate_ptr_list(m.lst_page_l, ptr);
-	if (res[0] == E_ALLOCATED || res[1] == E_ALLOCATED || res[2] == E_ALLOCATED) {
-		return (1);
+	if ((ISMMAP(victim.heap) && !ISALLOC(victim.heap)) || (!ISMMAP(victim.heap) && !ISALLOC(victim.chunk))) {
+		ft_putptr_fd(ptr, m.debug.output);
+		ft_putstr_fd(" - is already freed.", m.debug.output);
+		if (m.debug.validate_ptrs == E_ON) {
+			ft_putendl_fd(" Aborting...", m.debug.output);
+			pthread_mutex_unlock(&mutex_malloc);
+			abort();
+		}
+		else {
+			ft_putendl_fd(" Warning!", m.debug.output);
+			return (1);
+		}
 	}
-	else if (res[0] == E_FREED || res[1] == E_FREED || res[2] == E_FREED)
-		m.debug.validate_ptrs = (m.debug.validate_ptrs == E_OFF) ? E_OFF : E_FREED;
-	else
-		m.debug.validate_ptrs = (m.debug.validate_ptrs == E_OFF) ? E_OFF : E_INVALID;
 	return (0);
 }
 
-static void	report_allocation(void *root) {
-	while (root != NULL && GETSIZE(root) != 0)
+static void	report_allocation(heap_t *root) {
+	heap_t *cur = root;
+	while (cur)
     {
-        if (ISALLOC(root)) {
-			ft_putptr_fd(root, m.debug.output);
+		if (ISMMAP(cur) && ISALLOC(cur)) {
+			ft_putptr_fd(cur, m.debug.output);
 			ft_putstr_fd(" - ", m.debug.output);
-			ft_putptr_fd(root + GETSIZE(root), m.debug.output);
+			ft_putptr_fd(cur + GETSIZE(cur), m.debug.output);
 			ft_putstr_fd(" | ", m.debug.output);
-			ft_putnbr_fd((int)GETSIZE(root), m.debug.output);
+			ft_putnbr_fd((int)GETSIZE(cur), m.debug.output);
 			ft_putstr_fd(" bytes", m.debug.output);
 			ft_putstr_fd(" allocated\n", m.debug.output);
-        }
-        root=(size_t*)(root + GETSIZE(root) + 2 * SIZE);
-		if (get_value(root) == 0b01)
-			root = (void *)get_value(root + FDPTR);
+		} else {
+			chunk_t *chunk = heap2chunk(cur);
+			for (INTERNAL_SIZE_T i = 0; i < cur->chk_cnt; ++i) {
+				if (ISALLOC(chunk)){
+					ft_putptr_fd(chunk, m.debug.output);
+					ft_putstr_fd(" - ", m.debug.output);
+					ft_putptr_fd(chunk + GETSIZE(chunk), m.debug.output);
+					ft_putstr_fd(" | ", m.debug.output);
+					ft_putnbr_fd((int)GETSIZE(chunk), m.debug.output);
+					ft_putstr_fd(" bytes", m.debug.output);
+					ft_putstr_fd(" allocated\n", m.debug.output);
+				}
+				chunk = next_chunk(chunk);
+			}
+		}
+		cur = cur->fd;
     }
 }
 
 void	report_allocations(void) {
 	ft_putstr_fd("The list of allocations still active:\n", m.debug.output);
-	report_allocation(m.lst_page_s);
-	report_allocation(m.lst_page_m);
-	report_allocation(m.lst_page_l);
+	for (INTERNAL_SIZE_T i = 0; i < 3; ++i) {
+		report_allocation(m.heaplist[i]);
+	}
 }
 
 void	fill_pattern(void *addr, char *pattern, size_t size) {
-	char *ptr = (char *)addr;
-	size_t len_pattern = ft_strlen(pattern);
-	for (size_t i = 0; i < size; ++i) {
-		ptr[i] = pattern[i % len_pattern];
+	size_t len_pattern;
+	if ((len_pattern = ft_strlen(pattern))) {
+		char *ptr = (char *)addr;
+		for (size_t i = 0; i < size; ++i) {
+			ptr[i] = pattern[i % len_pattern];
+		}
 	}
 }

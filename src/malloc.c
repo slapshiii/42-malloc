@@ -33,12 +33,10 @@ void    *allocate(heap_t **l, size_t s) {
 		new_chunk->bk = victim.chunk->bk;
 		new_chunk->fd = victim.chunk->fd;
 		init_chunk(victim.chunk, s, PREV_INUSE, victim.chunk->prev_size);
-		//victim.chunk->size = s | PREV_INUSE;
 		victim.heap->chk_cnt++;
 	} else {
 		victim.chunk->size++;
 	}
-	//fill_pattern(chunk2mem(victim.chunk), m.debug.pattern_alloc, GETSIZE(victim.chunk) - 2*SIZE_SZ);
 	return (chunk2mem(victim.chunk));
 }
 
@@ -63,7 +61,6 @@ void    *allocate_mmap(heap_t **l, size_t s) {
 	new_heap->bk = last;
 	new_heap->fd = NULL;
 	fill_pattern(heap2chunk(new_heap), m.debug.pattern_alloc, GETSIZE(new_heap) - sizeof(heap_t));
-	// hexdump(new_heap, s);
 	return (heap2chunk(new_heap));
 }
 

@@ -17,7 +17,7 @@ heap_t	*create_heap(size_t s, heap_t *prev_heap) {
 	if (prev_heap)
 		prev_heap->fd = new_heap;
 	init_chunk(heap2chunk(new_heap), s - sizeof(heap_t), 0, 1);
-	fill_pattern((void*)new_heap+sizeof(heap_t)+sizeof(chunk_t), m.debug.pattern_free, GETSIZE(new_heap)-8*SIZE_SZ);
+	// fill_pattern((void*)new_heap+sizeof(heap_t)+sizeof(chunk_t), m.debug.pattern_free, GETSIZE(new_heap)-8*SIZE_SZ);
 	return new_heap;
 }
 

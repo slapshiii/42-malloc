@@ -64,10 +64,12 @@ int main(int ac, char **av)
     char *addr2 = (char*)malloc(30);
     char *addr3 = (char*)malloc(16);
     char *addr4 = (char*)malloc(16);
+    char *addr5 = (char*)malloc(30);
     show_alloc_mem();
-    show_alloc_mem_hex(addr2);
+    // show_alloc_mem_hex(addr2);
     free(addr2);
-    show_alloc_mem_hex(addr2);
+    // show_alloc_mem_hex(addr2);
+    hexdump((void*)((size_t)addr1 & (~0xFFF)), 256);
     free(addr1);
     free(addr3);
     free(addr4);

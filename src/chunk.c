@@ -6,7 +6,7 @@ void init_chunk(chunk_t *addr, size_t size, int flag, size_t prev_sz) {
 	if (!(flag & PREV_INUSE)) {
 		addr->fd = NULL;
 		addr->bk = NULL;
-		fill_pattern((void*)addr+sizeof(chunk_t), m.debug.pattern_free, size - sizeof(chunk_t));
+		fill_pattern((void*)addr+sizeof(chunk_t), m.debug.pattern_free, size-sizeof(chunk_t));
 	} else {
 		fill_pattern(chunk2mem(addr), m.debug.pattern_alloc, size - 2*SIZE_SZ);
 	}

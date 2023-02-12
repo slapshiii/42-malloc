@@ -61,7 +61,7 @@ int main(int ac, char **av)
     // show_alloc_mem();
 
     char *addr1 = (char*)malloc(16);
-    char *addr2 = (char*)malloc(16);
+    char *addr2 = (char*)malloc(30);
     char *addr3 = (char*)malloc(16);
     char *addr4 = (char*)malloc(16);
     show_alloc_mem();

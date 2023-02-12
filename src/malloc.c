@@ -28,12 +28,13 @@ void    *allocate(heap_t **l, size_t s) {
 	}
 	if (victim.size - s >= MINSIZE) {
 		chunk_t *new_chunk = (void*)(victim.chunk) + s;
-		init_chunk(new_chunk, victim.size - s, 0, s | PREV_INUSE);
+		new_chunk->prev_size = s | PREV_INUSE;
+		new_chunk->size = victim.size - s;
+		new_chunk->bk = victim.chunk->bk;
+		new_chunk->fd = victim.chunk->fd;
 		init_chunk(victim.chunk, s, PREV_INUSE, victim.chunk->prev_size);
 		//victim.chunk->size = s | PREV_INUSE;
 		victim.heap->chk_cnt++;
-		new_chunk->bk = victim.chunk->bk;
-		new_chunk->fd = victim.chunk->fd;
 	} else {
 		victim.chunk->size++;
 	}
